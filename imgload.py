@@ -35,28 +35,3 @@ def create_input_pipeline(filepaths, labels, batch_size):
 	image = tf.image.resize_images(image, [224, 224])
 
 	return tf.train.batch([image, label], batch_size=batch_size)
-
-
-'''create_input_pipeline(img_dir, "dataset_train.txt", batch_size)
-
-print "input pipeline ready"
-
-with tf.Session() as sess:
-  # initialize the variables
-  sess.run(tf.initialize_all_variables())
-  
-  # initialize the queue threads to start to shovel data
-  coord = tf.train.Coordinator()
-  threads = tf.train.start_queue_runners(coord=coord)
-
-  print "from the train set:"
-  for i in range(20):
-    b = train_image_batch.eval()
-    a = b[0,:,:,:]
-    plt.imshow(a.astype(np.uint8))
-    plt.show()
-
-  # stop our queue threads and properly close the session
-  coord.request_stop()
-  coord.join(threads)
-  sess.close()'''

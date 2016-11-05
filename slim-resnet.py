@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from tensorflow.contrib.slim.nets import resnet_v1
-from imgload import read_label_file, create_input_pipeline
+from image_queue import ImageReader
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
@@ -34,11 +34,10 @@ if args.modeldir == None and (args.save or args.restore):
 def get_model_path(model_dir, run):
 	return os.path.join(os.path.abspath(model_dir), "model" + str(run) + ".ckpt")
 
-batch_size = 20
+batch_size = 30
 n_input = 224
-n_output = 7
 learning_rate = 0.001
-n_iters = 5000
+n_iters = 10000
 n_disp = 5
 
 
@@ -47,14 +46,12 @@ if not tf.gfile.Exists(train_log_dir):
   tf.gfile.MakeDirs(train_log_dir)
 
 # Prepare input queues
-train_filepaths, train_labels = read_label_file(os.path.abspath(args.imgdir), "dataset_train.txt")
-test_filepaths, test_labels = read_label_file(os.path.abspath(args.imgdir), "dataset_test.txt")
-train_images, train_labels = create_input_pipeline(train_filepaths, train_labels, batch_size)
-test_images, test_labels = create_input_pipeline(test_filepaths, test_labels, 1)
+train_reader = ImageReader(os.path.abspath(args.imgdir), "dataset_train.txt", batch_size, [n_input, n_input])
+test_reader = ImageReader(os.path.abspath(args.imgdir), "dataset_train2.txt", 1, [n_input, n_input])
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input, n_input, 3], name="InputData")
-y = tf.placeholder(tf.float32, [None, n_output], name="LabelData")
+y = tf.placeholder(tf.float32, [None, 7], name="LabelData")
 
 
 # Define the model:
@@ -95,8 +92,6 @@ merged_summary_op = tf.merge_all_summaries()
 
 
 #fig, ax = plt.subplots(4, 5)
-#plt.ion()
-#plt.show()
 
 # Launch the graph
 with tf.Session() as sess:
@@ -117,25 +112,20 @@ with tf.Session() as sess:
 		summary_writer = tf.train.SummaryWriter(train_log_dir, graph=tf.get_default_graph())
 
 		for i in range(n_iters):
-			images_feed = train_images.eval()
-			labels_feed = train_labels.eval()
+			images_feed, labels_feed = train_reader.next_batch()
 
 			#for j in range(20):
 			#	ax = plt.subplot(4, 5, j+1)
 			#	a = images_feed[j,:,:,:]
 			#	ax.imshow(a.astype(np.uint8))
-			#plt.draw()
-			#plt.pause(0.005)
-
-			#print images_feed[:,0,0,0], labels_feed[:,0]
+			#plt.show()
 
 			# Run optimization op (backprop)
 			sess.run([optimizer], feed_dict={x: images_feed, y: labels_feed})
 
 			if (i % n_disp == 0):
-				dxx, ex, eq, loss, summary = sess.run([dx, error_x, error_q, cost, merged_summary_op], feed_dict={x: images_feed, y: labels_feed})
+				ex, eq, loss, summary = sess.run([error_x, error_q, cost, merged_summary_op], feed_dict={x: images_feed, y: labels_feed})
 				summary_writer.add_summary(summary, i)
-				print dxx
 				print("Iteration " + str(i) + ", Loss= " + "{:.6f}".format(loss) \
 					+ ", dx= " + "{:.6f}".format(ex) \
 					+ ", dq= " + "{:.6f}".format(eq))
@@ -151,9 +141,8 @@ with tf.Session() as sess:
 		# Calculate accuracy for test images
 		sum_ex = 0
 		sum_eq = 0
-		for i in range(10):
-			images_feed = test_images.eval()
-			labels_feed = test_labels.eval()
+		for i in range(test_reader.total_batches()):
+			images_feed, labels_feed = test_reader.next_batch()
 			p, ex, eq, loss = sess.run([pred, error_x, error_q, cost], feed_dict={x: images_feed, y: labels_feed})
 			sum_ex += ex
 			sum_eq += eq
@@ -162,12 +151,11 @@ with tf.Session() as sess:
 			print "Correct:   ", map(lambda x: round(x, 2), labels_feed[0])
 			print "Error x: {}".format(ex)
 			print "Error q: {}".format(eq)
-			a = images_feed[0,:,:,:]
-			plt.imshow(a.astype(np.uint8))
-			plt.show()
+			#plt.imshow(images_feed[0,:,:,:].astype(np.uint8))
+			#plt.show()
 		print "----------------------"
-		print "Mean error x: {}".format(sum_ex/1)
-		print "Mean error q: {}".format(sum_eq/1)
+		print "Mean error x: {}".format(sum_ex/test_reader.total_batches())
+		print "Mean error q: {}".format(sum_eq/test_reader.total_batches())
 
 	coord.request_stop()
 	coord.join(threads)
