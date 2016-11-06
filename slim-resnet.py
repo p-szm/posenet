@@ -34,10 +34,10 @@ if args.modeldir == None and (args.save or args.restore):
 def get_model_path(model_dir, run):
 	return os.path.join(os.path.abspath(model_dir), "model" + str(run) + ".ckpt")
 
-batch_size = 30
+batch_size = 20
 n_input = 224
 learning_rate = 0.001
-n_iters = 10000
+n_iters = 5000
 n_disp = 5
 
 
@@ -47,7 +47,7 @@ if not tf.gfile.Exists(train_log_dir):
 
 # Prepare input queues
 train_reader = ImageReader(os.path.abspath(args.imgdir), "dataset_train.txt", batch_size, [n_input, n_input])
-test_reader = ImageReader(os.path.abspath(args.imgdir), "dataset_train2.txt", 1, [n_input, n_input])
+test_reader = ImageReader(os.path.abspath(args.imgdir), "dataset_test.txt", 1, [n_input, n_input])
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input, n_input, 3], name="InputData")
@@ -56,9 +56,10 @@ y = tf.placeholder(tf.float32, [None, 7], name="LabelData")
 
 # Define the model:
 with slim.arg_scope(resnet_v1.resnet_arg_scope(is_training=True)):
-	pred, _ = resnet_v1.resnet_v1_101(x, num_classes=None, global_pool=True, output_stride=None)
+	pred, _ = resnet_v1.resnet_v1_101(x, num_classes=None, global_pool=False, output_stride=None)
+	shape = pred.get_shape().as_list()
+	pred = tf.reshape(pred, [-1, shape[1]*shape[2]*shape[3]])
 	pred = slim.fully_connected(pred, 7, activation_fn=None, weights_regularizer=slim.l2_regularizer(0.0005))
-	pred = tf.reshape(pred, [-1, pred.get_shape().as_list()[3]])
 
 def split_label(output):
 	return tf.slice(output, [0, 0], [-1, 3]), tf.nn.l2_normalize(tf.slice(output, [0, 3], [-1, 4]), 1)
@@ -141,18 +142,25 @@ with tf.Session() as sess:
 		# Calculate accuracy for test images
 		sum_ex = 0
 		sum_eq = 0
+		#fig, ax = plt.subplots(1, 1)
 		for i in range(test_reader.total_batches()):
+			print "----{}----".format(i)
 			images_feed, labels_feed = test_reader.next_batch()
 			p, ex, eq, loss = sess.run([pred, error_x, error_q, cost], feed_dict={x: images_feed, y: labels_feed})
-			sum_ex += ex
-			sum_eq += eq
-			print "----{}----".format(i)
-			print "Predicted: ", map(lambda x: round(x, 2), p[0])
-			print "Correct:   ", map(lambda x: round(x, 2), labels_feed[0])
-			print "Error x: {}".format(ex)
-			print "Error q: {}".format(eq)
+			
+			print "Predicted: ", p
+			print "Correct:   ", labels_feed
+			print "ex: {}".format(ex)
+			print "eq: {}".format(eq)
 			#plt.imshow(images_feed[0,:,:,:].astype(np.uint8))
 			#plt.show()
+			#for j in range(1):
+			#	ax = plt.subplot(1, 1, j+1)
+			#	a = images_feed[j,:,:,:]
+			#	ax.imshow(a.astype(np.uint8))
+			#plt.show()
+			#sum_ex += ex
+			#sum_eq += eq
 		print "----------------------"
 		print "Mean error x: {}".format(sum_ex/test_reader.total_batches())
 		print "Mean error q: {}".format(sum_eq/test_reader.total_batches())
