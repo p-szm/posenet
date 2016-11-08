@@ -39,7 +39,7 @@ batch_size = 32
 test_batch_size = 1
 n_input = 224
 learning_rate = 0.001
-n_iters = 100
+n_iters = 5000
 n_disp = 5
 
 
@@ -57,7 +57,7 @@ y = tf.placeholder(tf.float32, [None, 7], name="LabelData")
 
 # Define the network
 poseNet = Posenet()
-cost, output = poseNet.create_trainable(x, y)
+cost, output = poseNet.create_trainable(x, y, beta=200)
 test_output, _ = poseNet.create_testable(x, reuse=True)
 
 # Define the optimiser

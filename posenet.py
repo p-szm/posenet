@@ -84,8 +84,8 @@ class Posenet:
             x_gt = tf.slice(labels, [0, 0], [-1, 3])
             q_gt = tf.slice(labels, [0, 3], [-1, 4])
 
-            x_loss = tf.sqrt(tf.reduce_sum(tf.square(tf.sub(outputs["x"], x_gt)), 1))
-            q_loss = tf.acos((2*tf.square(tf.reduce_sum(tf.mul(outputs["q"], q_gt), 1)) - 1.0))
+            x_loss = tf.sqrt(tf.reduce_sum(tf.square(tf.sub(outputs["x"], x_gt)), 1) + 1e-10)
+            q_loss = tf.acos(tf.clip_by_value((2*tf.square(tf.reduce_sum(tf.mul(outputs["q"], q_gt), 1)) - 1.0), -1.0, 1.0))
 
             x_loss = tf.reduce_mean(x_loss)
             q_loss = tf.reduce_mean(q_loss)
@@ -106,6 +106,16 @@ class Posenet:
             tf.scalar_summary('Positional Loss', x_loss)
             tf.scalar_summary('Orientation Loss', q_loss)
             tf.scalar_summary('Total Loss', total_loss)
+
+            # And histogram summaries
+            H = tf.get_default_graph().get_tensor_by_name("PoseNet/fc0/weights:0")
+            tf.histogram_summary("fc0/weights", H)
+            H = tf.get_default_graph().get_tensor_by_name("PoseNet/fc0/biases:0")
+            tf.histogram_summary("fc0/biases", H)
+            H = tf.get_default_graph().get_tensor_by_name("PoseNet/fc1/weights:0")
+            tf.histogram_summary("fc1/weights", H)
+            H = tf.get_default_graph().get_tensor_by_name("PoseNet/fc1/biases:0")
+            tf.histogram_summary("fc1/biases", H)
 
         #print map(lambda x: x.name, tf.get_collection(tf.GraphKeys.VARIABLES, scope='PoseNet'))
         #with tf.variable_scope("PoseNet"):
