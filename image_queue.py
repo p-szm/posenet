@@ -35,13 +35,20 @@ class ImageReader:
 
 	def _read_image(self, image_path):
 		image = img.imread(self._full_path(image_path))
+
+		# Normalize the image to [-1, 1]
+		#image = 2*image/255.0 - 1.0
+
+
 		# Random square crop
 		side = min(image.shape[0], image.shape[1])
 		side = max(int(side*0.9), min(*self.image_size))
 		tr_x = randint(0, image.shape[1]-side)
 		tr_y = randint(0, image.shape[0]-side)
 		image = image[tr_y:side+tr_y,tr_x:side+tr_x]
+
 		image = scipy.misc.imresize(image, [self.image_size[0], self.image_size[1], 3])
+		image = 2.0*image/255.0 - 1.0
 		return image
 
 	def next_batch(self):
