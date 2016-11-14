@@ -119,7 +119,7 @@ with tf.Session() as sess:
 			#for j in range(images_feed.shape[0]):
 			#	print 'Img mean: ', np.mean(images_feed[j,:,:,:])
 
-			output = sess.run([test_output], feed_dict={x: images_feed, y: labels_feed})
+			output, v = sess.run([test_output], feed_dict={x: images_feed, y: labels_feed})
 
 			#for j in range(v.shape[0]):
 			#	print np.mean(v[j,:,:,:])

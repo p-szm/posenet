@@ -3,20 +3,28 @@ import tensorflow as tf
 from tensorflow.contrib.layers import initializers
 import tensorflow.contrib.slim as slim
 from tensorflow.contrib.slim.nets import inception
+import numpy as np
 
-def create_image_summary(V, channels, name):
+def create_image_summary(V, size, name):
+    if type(V) == str:
+        V = tf.get_default_graph().get_tensor_by_name(V)
+
     V = tf.slice(V,(0,0,0,0),(1,-1,-1,-1))
     batches, ix, iy, channels = V.get_shape().as_list()
     V = tf.reshape(V, (ix, iy, channels))
+
+    # Add some padding
     ix += 4
     iy += 4
     V = tf.image.resize_image_with_crop_or_pad(V, iy, ix)
-    cx = 4
-    cy = channels/cx
+
+    cx = size[1]
+    cy = size[0]
     V = tf.reshape(V,(iy,ix,cy,cx))
     V = tf.transpose(V,(2,0,3,1)) #cy,iy,cx,ix
     V = tf.reshape(V,(1,cy*iy,cx*ix,1))
     tf.image_summary(name, V)
+
 
 class Posenet:
 
@@ -78,7 +86,7 @@ class Posenet:
 
     def create_trainable(self, inputs, labels, dropout=0.7, beta=500):
         with tf.variable_scope('PoseNet'):
-            outputs, _ = self.create_stream(inputs, dropout, trainable=True)
+            outputs, layers = self.create_stream(inputs, dropout, trainable=True)
 
             # separate pose label
             x_gt = tf.slice(labels, [0, 0], [-1, 3])
@@ -93,14 +101,12 @@ class Posenet:
             total_loss = tf.add(x_loss, tf.mul(q_loss, tf.constant(beta, tf.float32)))
 
             # Create some image summaries
-            V = tf.get_default_graph().get_tensor_by_name("PoseNet/Inception_V3/Conv2d_1a_3x3/weights:0")
-            create_image_summary(V, 32, "Conv2d_1a_3x3/weights")
-            V = _["Conv2d_1a_3x3"]
-            create_image_summary(V, 32, "Conv2d_1a_3x3")
-            V = _["Conv2d_2a_3x3"]
-            create_image_summary(V, 32, "Conv2d_2a_3x3")
-            V = _["Conv2d_2b_3x3"]
-            create_image_summary(V, 32, "Conv2d_2b_3x3")
+            #create_image_summary("PoseNet/Inception_V3/Conv2d_1a_3x3/weights:0", [8, 4], "Conv2d_1a_3x3/weights")
+            create_image_summary(layers["Conv2d_1a_3x3"], [8, 4], "Conv2d_1a_3x3")
+            create_image_summary(layers["Conv2d_2a_3x3"], [8, 4], "Conv2d_2a_3x3")
+            create_image_summary(layers["Conv2d_2b_3x3"], [16, 4], "Conv2d_2b_3x3")
+            create_image_summary(layers["Conv2d_3b_1x1"], [16, 5], "Conv2d_3b_1x1")
+            create_image_summary(layers["Conv2d_4a_3x3"], [32, 6], "Conv2d_4a_3x3")
 
             # And scalar smmaries
             tf.scalar_summary('Positional Loss', x_loss)
