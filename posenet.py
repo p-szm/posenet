@@ -103,9 +103,9 @@ class Posenet:
             x_loss, q_loss, total_loss = self.loss(outputs, gt, beta)
 
             # And scalar smmaries
-            summaries.append(tf.scalar_summary('test/Positional Loss', x_loss))
-            summaries.append(tf.scalar_summary('test/Orientation Loss', q_loss))
-            summaries.append(tf.scalar_summary('test/Total Loss', total_loss))
+            summaries.append(tf.scalar_summary('validation/Positional Loss', x_loss))
+            summaries.append(tf.scalar_summary('validation/Orientation Loss', q_loss))
+            summaries.append(tf.scalar_summary('validation/Total Loss', total_loss))
 
         return outputs, total_loss, summaries
 
