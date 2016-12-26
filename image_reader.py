@@ -15,20 +15,21 @@ def read_label_file(def_file):
 	return paths, labels
 
 class ImageReader:
-	def __init__(self, image_dir, def_file, batch_size, image_size, random_crop):
+	def __init__(self, image_dir, def_file, batch_size, image_size, random_crop, randomise):
 		self.image_dir = image_dir
 		self.batch_size = batch_size
 		self.image_size = image_size
 		self.random_crop = random_crop
+		self.randomise = randomise
 		self.images, self.labels = read_label_file(self._full_path(def_file))
 		self.idx = 0
 
 	def _full_path(self, f):
 		return os.path.join(self.image_dir, f)
 
-	def _reset(self, randomise):
+	def _reset(self):
 		self.idx = 0
-		if randomise:
+		if self.randomise:
 			index_shuf = range(len(self.images))
 			shuffle(index_shuf)
 			self.images = [self.images[i] for i in index_shuf]
@@ -55,7 +56,7 @@ class ImageReader:
 		labels = self.labels[self.idx:self.idx+self.batch_size]
 		self.idx += self.batch_size
 		if self.idx >= len(self.images):
-			self._reset(True)
+			self._reset()
 		return images, labels
 
 	def total_images(self):
