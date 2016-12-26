@@ -15,10 +15,11 @@ def read_label_file(def_file):
 	return paths, labels
 
 class ImageReader:
-	def __init__(self, image_dir, def_file, batch_size, image_size):
+	def __init__(self, image_dir, def_file, batch_size, image_size, random_crop):
 		self.image_dir = image_dir
 		self.batch_size = batch_size
 		self.image_size = image_size
+		self.random_crop = random_crop
 		self.images, self.labels = read_label_file(self._full_path(def_file))
 		self.idx = 0
 
@@ -38,9 +39,9 @@ class ImageReader:
 
 		# Random square crop
 		side = min(image.shape[0], image.shape[1])
-		side = max(int(side*0.9), min(*self.image_size))
-		tr_x = randint(0, image.shape[1]-side)
-		tr_y = randint(0, image.shape[0]-side)
+		side = max(int(side*0.95), min(*self.image_size))
+		tr_x = (image.shape[1]-side)/2 if not self.random_crop else randint(0, image.shape[1]-side)
+		tr_y = (image.shape[0]-side)/2 if not self.random_crop else randint(0, image.shape[0]-side)
 		image = image[tr_y:side+tr_y,tr_x:side+tr_x]
 
 		image = scipy.misc.imresize(image, [self.image_size[0], self.image_size[1], 3])

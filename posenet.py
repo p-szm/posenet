@@ -84,8 +84,10 @@ class Posenet:
         return {'x': x, 'q': q}
 
     def loss(self, outputs, gt, beta):
-        x_loss = tf.sqrt(tf.reduce_sum(tf.square(tf.sub(outputs["x"], gt["x"])), 1) + 1e-10)
-        q_loss = tf.acos(tf.clip_by_value((2*tf.square(tf.reduce_sum(tf.mul(outputs["q"], gt["q"]), 1)) - 1.0), -1.0, 1.0))
+        x_loss = tf.reduce_sum(tf.abs(tf.sub(outputs["x"], gt["x"])), 1)
+        q_loss = tf.reduce_sum(tf.abs(tf.sub(outputs["q"], gt["q"])), 1)
+        #x_loss = tf.sqrt(tf.reduce_sum(tf.square(tf.sub(outputs["x"], gt["x"])), 1) + 1e-10)
+        #q_loss = tf.acos(tf.clip_by_value((2*tf.square(tf.reduce_sum(tf.mul(outputs["q"], gt["q"]), 1)) - 1.0), -1.0, 1.0))
 
         x_loss = tf.reduce_mean(x_loss)
         q_loss = tf.reduce_mean(q_loss)
@@ -93,7 +95,7 @@ class Posenet:
 
         return x_loss, q_loss, total_loss
 
-    def create_testable(self, inputs, labels, beta=500, reuse=False):
+    def create_validation(self, inputs, labels, beta=500, reuse=False):
         summaries = []
         with tf.variable_scope('PoseNet', reuse=reuse):
             outputs, layers = self.create_stream(inputs, dropout=None, trainable=False)
@@ -106,6 +108,11 @@ class Posenet:
             summaries.append(tf.scalar_summary('test/Total Loss', total_loss))
 
         return outputs, total_loss, summaries
+
+    def create_testable(self, inputs):
+        with tf.variable_scope('PoseNet'):
+            outputs, _ = self.create_stream(inputs, dropout=None, trainable=False)
+        return outputs
 
     def create_trainable(self, inputs, labels, dropout=0.7, beta=500):
         summaries = []
