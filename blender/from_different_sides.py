@@ -17,8 +17,8 @@ parser.add_argument('--width', action='store', type=int, default=1000)
 parser.add_argument('--height', action='store', type=int, default=800)
 parser.add_argument('--n_images', action='store', type=int, default=10)
 parser.add_argument('--r', action='store', default='10')
-parser.add_argument('--phi', action='store', default='[-3.1416,3.1416]')
-parser.add_argument('--theta', action='store', default='[-1.5708,1.5708]')
+parser.add_argument('--phi', action='store', default='uniform[-3.1416,3.1416]')
+parser.add_argument('--theta', action='store', default='uniform[-1.5708,1.5708]')
 args = parser.parse_args(preprocess_args(sys.argv))
 
 
@@ -33,9 +33,14 @@ def sample_from_interval(interval, i):
     if type(interval) is int or type(interval) is float:
         # Constant
         return interval
-    if len(interval) == 2:
-        # Random uniform
-        return random.uniform(interval[0], interval[1])
+    if len(interval) == 3:
+        interval_type = interval[2]
+        if interval_type == 'uniform':
+            return random.uniform(interval[0], interval[1])
+        elif interval_type == 'linspace':
+            return interval[0] + i * (interval[1] - interval[0]) / (args.n_images - 1)
+        else:
+            raise ValueError('Unknown interval type: {}'.format(interval_type))
 
 if not os.path.exists(args.output_dir):
     os.makedirs(args.output_dir)

@@ -8,11 +8,15 @@ def preprocess_args(argv):
 def parse_interval(interval):
     if '[' not in interval:
         # Assume it's a single number
-        try:
-            return float(interval)
-        except:
-            raise ValueError('Could not parse: {}'.format(interval))
+        return float(interval)
+
     # Assume it's an interval
+    interval_type = interval[:interval.index('[')]
+    interval = interval[interval.index('['):]
+
+    if interval_type not in ('uniform', 'linspace'):
+        raise ValueError('Unrecognised interval type: {}'.format(interval_type))
+
     if len(interval) < 3 or not (interval[0] == '[' and interval[-1] == ']' and ',' in interval):
         raise ValueError('Could not parse interval: {}'.format(interval))
     a, b = interval[1:-1].split(',')
@@ -23,7 +27,7 @@ def parse_interval(interval):
         raise ValueError('Could not parse interval: {}'.format(interval))
     if a >= b:
         raise ValueError('Invalid interval: {}'.format(interval))
-    return a, b
+    return a, b, interval_type
 
 def renderToFile(filename, width, height, mode='RGB'):
     """Save the scene as a png file"""
@@ -61,4 +65,4 @@ class Camera:
     def getPoseString(self, decimals=6):
         r = [round(v, decimals) for v in self.getLocation()]
         q = [round(v, decimals) for v in self.getRotation()]
-        return '{} {} {} {} {} {} {}\n'.format(r[0], r[1], r[2], q[0], q[1], q[2], q[3])
+        return '{} {} {} {} {} {} {}'.format(r[0], r[1], r[2], q[0], q[1], q[2], q[3])
