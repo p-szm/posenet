@@ -12,8 +12,9 @@ from image_reader import ImageReader
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', action='store', required=True)
 parser.add_argument('--validate', action='store', required=True)
+parser.add_argument('--logdir', action='store', default='runs')
 parser.add_argument('--run', action='store', type=int, required=True)
-parser.add_argument('--save', action='store')
+parser.add_argument('--save_dir', action='store', default='models')
 parser.add_argument('--restore', action='store')
 parser.add_argument('--batch_size', action='store', type=int, default=32)
 parser.add_argument('--n_iters', action='store', type=int, default=5000)
@@ -21,17 +22,15 @@ parser.add_argument('--n_disp', action='store', type=int, default=5)
 parser.add_argument('--n_disp_validation', action='store', type=int, default=20)
 args = parser.parse_args()
 
-def get_save_path(path, run):
-	return os.path.join(os.path.abspath(path), "model" + str(run) + ".ckpt")
-
 n_input = 224
 learning_rate = 0.001
 beta = 20
 
-
-log_dir = '/home/pszmucer/workspace/resnet/runs/run' + str(args.run)
+log_dir = os.path.join(args.logdir, 'run{}'.format(args.run))
 if not tf.gfile.Exists(log_dir):
 	tf.gfile.MakeDirs(log_dir)
+if not tf.gfile.Exists(args.save_dir):
+	tf.gfile.MakeDirs(args.save_dir)
 
 # Prepare input queues
 train_reader = ImageReader(args.dataset, args.batch_size, [n_input, n_input], False, True)
@@ -99,8 +98,8 @@ with tf.Session() as sess:
 	print("Optimization Finished!")
 	
 	# Save the model
-	if args.save:
-		print "Saving the model..."
-		save_path = saver.save(sess, get_save_path(args.save, args.run))
-		print("Model saved in file: %s" % save_path)
+	print "Saving the model..."
+	save_path = os.path.join(args.save_dir, 'model{}.ckpt'.format(args.run))
+	saver.save(sess, save_path)
+	print("Model saved in file: %s" % save_path)
 
