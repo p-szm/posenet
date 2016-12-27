@@ -76,7 +76,7 @@ setMaterial(monkey, red)
 camera = bpy.data.objects['Camera']
 N = 100
 
-with open('training.txt', 'w') as f:
+with open('train2.txt', 'w') as f:
     f.write('Suzanne Synthetic Dataset V1\n')
     f.write('ImageFile, Camera Position [X Y Z W P Q R]\n\n')
     for i in range(N):
@@ -87,8 +87,8 @@ with open('training.txt', 'w') as f:
         y = r*math.sin(theta)*math.sin(phi)
         z = r*math.cos(theta)
         setCamera(x, y, z, 0, 0, 0)
-        look_at(camera, bpy.data.objects["Suzanne"].location)
+        look_at(camera, bpy.data.objects["Suzanne"].location+Vector((random.uniform(-1,1), random.uniform(-1,1), random.uniform(-1,1))))
         q = camera.rotation_euler.to_quaternion()
-        filename = 'training/image{0:04d}.png'.format(i)
+        filename = 'train2/image{0:04d}.png'.format(i)
         renderToFile(filename, 1000, 800)
         f.write('{0} {1:.6f} {2:.6f} {3:.6f} {4:.6f} {5:.6f} {6:.6f} {7:.6f}\n'.format(filename, x, y, z, q[0], q[1], q[2], q[3]))
