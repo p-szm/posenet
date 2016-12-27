@@ -8,32 +8,24 @@ import os
 from posenet import Posenet
 from image_reader import ImageReader
 
+
 parser = argparse.ArgumentParser()
-parser.add_argument('--restore', action='store')
+parser.add_argument('--dataset', action='store', required=True)
+parser.add_argument('--validate', action='store', required=True)
+parser.add_argument('--run', action='store', type=int, required=True)
 parser.add_argument('--save', action='store')
-parser.add_argument('--run', action='store', type=int)
-parser.add_argument('--imgdir', action='store')
-
+parser.add_argument('--restore', action='store')
+parser.add_argument('--batch_size', action='store', type=int, default=32)
+parser.add_argument('--n_iters', action='store', type=int, default=5000)
+parser.add_argument('--n_disp', action='store', type=int, default=5)
+parser.add_argument('--n_disp_validation', action='store', type=int, default=20)
 args = parser.parse_args()
-
-if args.run == None:
-	print "Run number not defined"
-	sys.exit()
-
-if args.imgdir == None:
-	print "Image directory not defined"
-	sys.exit()
 
 def get_save_path(path, run):
 	return os.path.join(os.path.abspath(path), "model" + str(run) + ".ckpt")
 
-batch_size = 32
-validation_batch_size = 32
 n_input = 224
 learning_rate = 0.001
-n_iters = 5000
-n_disp = 5
-n_disp_validation = 30
 beta = 20
 
 
@@ -42,8 +34,8 @@ if not tf.gfile.Exists(log_dir):
 	tf.gfile.MakeDirs(log_dir)
 
 # Prepare input queues
-train_reader = ImageReader(os.path.abspath(args.imgdir), "training.txt", batch_size, [n_input, n_input], False, True)
-validation_reader = ImageReader(os.path.abspath(args.imgdir), "validation.txt", validation_batch_size, [n_input, n_input], False, True)
+train_reader = ImageReader(args.dataset, args.batch_size, [n_input, n_input], False, True)
+validation_reader = ImageReader(args.validate, args.batch_size, [n_input, n_input], False, True)
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input, n_input, 3], name="InputData")
@@ -75,7 +67,7 @@ with tf.Session() as sess:
 	# op to write logs to Tensorboard
 	summary_writer = tf.train.SummaryWriter(log_dir, graph=tf.get_default_graph())
 
-	for i in range(n_iters):
+	for i in range(args.n_iters):
 		train_images_feed, train_labels_feed = train_reader.next_batch()
 
 		#for j in range(20):
@@ -87,7 +79,7 @@ with tf.Session() as sess:
 		# Run optimization op (backprop)
 		sess.run([optimizer], feed_dict={x: train_images_feed, y: train_labels_feed})
 
-		if (i % n_disp == 0):
+		if (i % args.n_disp == 0):
 			print "----- Iter {} -----".format(i)
 			results = sess.run(
 				[train_loss]+train_summaries, feed_dict={x: train_images_feed, y: train_labels_feed})
@@ -95,7 +87,7 @@ with tf.Session() as sess:
 				summary_writer.add_summary(res, i)
 			print("(TRAIN) Loss= " + "{:.6f}".format(results[0]))
 
-		if (i % n_disp_validation == 0):
+		if (i % args.n_disp_validation == 0):
 			val_images_feed, val_labels_feed = validation_reader.next_batch()
 			results = sess.run(
 				[validation_loss]+validation_summaries, feed_dict={x: val_images_feed, y: val_labels_feed})

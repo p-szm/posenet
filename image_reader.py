@@ -15,13 +15,13 @@ def read_label_file(def_file):
 	return paths, labels
 
 class ImageReader:
-	def __init__(self, image_dir, def_file, batch_size, image_size, random_crop, randomise):
-		self.image_dir = image_dir
+	def __init__(self, def_file, batch_size, image_size, random_crop, randomise):
+		self.image_dir = os.path.dirname(def_file)
 		self.batch_size = batch_size
 		self.image_size = image_size
 		self.random_crop = random_crop
 		self.randomise = randomise
-		self.images, self.labels = read_label_file(self._full_path(def_file))
+		self.images, self.labels = read_label_file(def_file)
 		self.idx = 0
 
 	def _full_path(self, f):
