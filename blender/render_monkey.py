@@ -1,8 +1,10 @@
-import bpy
 import math
-from mathutils import Vector
 import random
- 
+
+import bpy
+from mathutils import Vector
+
+
 def renderToFile(filename, width, height):
     bpy.data.scenes['Scene'].render.filepath = filename
     bpy.context.scene.render.resolution_x = width 

@@ -1,9 +1,11 @@
-import bpy
-from mathutils import *
-import sys
-import os
 import argparse
 import math
+import os
+import sys
+
+import bpy
+from mathutils import *
+
 sys.path.append(os.path.dirname(bpy.data.filepath)) # So that next import works
 from utils import *
 
