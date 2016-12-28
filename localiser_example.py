@@ -2,7 +2,7 @@ import argparse
 
 from image_reader import ImageReader
 from localiser import Localiser
-from utils import pos_error, orient_error
+from utils import l2_distance, quaternion_distance
 
 
 parser = argparse.ArgumentParser()
