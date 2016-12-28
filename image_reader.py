@@ -18,7 +18,7 @@ def read_label_file(def_file):
 
 
 class ImageReader:
-	def __init__(self, def_file, batch_size, image_size, random_crop, randomise):
+	def __init__(self, def_file, batch_size=1, image_size=224, random_crop=False, randomise=False):
 		self.image_dir = os.path.dirname(def_file)
 		self.batch_size = batch_size
 		self.image_size = image_size
