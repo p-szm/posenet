@@ -1,9 +1,9 @@
-import tensorflow as tf
-
-from tensorflow.contrib.layers import initializers
-import tensorflow.contrib.slim as slim
-from tensorflow.contrib.slim.nets import inception
 import numpy as np
+import tensorflow as tf
+import tensorflow.contrib.slim as slim
+from tensorflow.contrib.layers import initializers
+from tensorflow.contrib.slim.nets import inception
+
 
 def create_image_summary(V, size, name):
     if type(V) == str:
@@ -29,6 +29,7 @@ def create_image_summary(V, size, name):
 def create_histogram_summary(tensor_name):
     H = tf.get_default_graph().get_tensor_by_name("PoseNet/" + tensor_name + ":0")
     return tf.histogram_summary(tensor_name, H)
+
 
 class Posenet:
 

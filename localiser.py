@@ -1,6 +1,8 @@
-import tensorflow as tf
-from posenet import Posenet
 import numpy
+import tensorflow as tf
+
+from posenet import Posenet
+
 
 class Localiser:
 	def __init__(self, input_size, model_path):

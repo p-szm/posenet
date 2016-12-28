@@ -1,12 +1,14 @@
-import tensorflow as tf
-import tensorflow.contrib.slim as slim
+import argparse
+import os
+import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
-import argparse
-import sys
-import os
-from posenet import Posenet
+import tensorflow as tf
+import tensorflow.contrib.slim as slim
+
 from image_reader import ImageReader
+from posenet import Posenet
 
 
 parser = argparse.ArgumentParser()
@@ -21,6 +23,7 @@ parser.add_argument('--n_iters', action='store', type=int, default=5000)
 parser.add_argument('--n_disp', action='store', type=int, default=5)
 parser.add_argument('--n_disp_validation', action='store', type=int, default=20)
 args = parser.parse_args()
+
 
 n_input = 224
 learning_rate = 0.001

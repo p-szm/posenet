@@ -1,7 +1,8 @@
+import argparse
+
 from image_reader import ImageReader
 from localiser import Localiser
-from utils import *
-import argparse
+from utils import pos_error, orient_error
 
 
 parser = argparse.ArgumentParser()

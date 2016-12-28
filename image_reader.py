@@ -1,9 +1,11 @@
+import math
+import os
+from random import randint, shuffle
+
 import matplotlib.image as img
 import numpy as np
 import scipy.misc
-from random import randint, shuffle
-import math
-import os
+
 
 def read_label_file(def_file):
 	paths = []
@@ -13,6 +15,7 @@ def read_label_file(def_file):
 		paths = map(lambda line: line[0], lines)
 		labels = map(lambda line: map(lambda x: float(x), line[1:]), lines)
 	return paths, labels
+
 
 class ImageReader:
 	def __init__(self, def_file, batch_size, image_size, random_crop, randomise):

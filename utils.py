@@ -1,5 +1,7 @@
-import numpy as np
 import math
+
+import numpy as np
+
 
 def l2_distance(x, y):
 	if type(x) is not np.ndarray:
