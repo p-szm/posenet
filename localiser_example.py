@@ -63,19 +63,20 @@ if args.plot_errors is not None:
 
 	ax1.plot(x, pos_errors, color='black')
 	ax1.set_xlim([-90, 90])
-	ax1.axvspan(-90, -45, alpha=0.2, color='red')
-	ax1.axvspan(45, 90, alpha=0.2, color='red')
+	shade = (1, 0.8, 0.8)
+	ax1.axvspan(-90, -45, color=shade)
+	ax1.axvspan(45, 90, color=shade)
 	ax1.set_ylabel("Positional error")
 
 	ax2.plot(x, orient_errors, color='black')
 	ax2.set_xlim([-90, 90])
-	ax2.axvspan(-90, -45, alpha=0.2, color='red')
-	ax2.axvspan(45, 90, alpha=0.2, color='red')
+	ax2.axvspan(-90, -45, color=shade)
+	ax2.axvspan(45, 90, color=shade)
 	ax2.set_xlabel('Phi')
 	ax2.set_ylabel("Orientation error (degrees)")
 
 	if args.plot_errors:
-		plt.savefig(args.plot_errors)
+		plt.savefig(args.plot_errors, bbox_inches='tight')
 	else:
 		plt.show()
 
@@ -93,11 +94,14 @@ if args.plot_3d is not None:
 	x = r_sphere * np.outer(np.cos(u), np.sin(v))
 	y = r_sphere * np.outer(np.sin(u), np.sin(v))
 	z = r_sphere * np.outer(np.ones(np.size(u)), np.cos(v))
-	ax.plot_wireframe(x, y, z, rstride=4, cstride=4, color='b')
+	ax.plot_wireframe(x, y, z, rstride=4, cstride=4, color='black', lw=0.5)
 
-	# Path
-	ax.plot(positions[:,0], positions[:,1], positions[:,2], 
-			label='parametric curve', color='red')
+	# Correct path
+	phi = np.linspace(-np.pi/2, np.pi/2, 100)
+	ax.plot(8*np.cos(phi), 8*np.sin(phi), np.zeros(100), color='black', lw=0.5)
+
+	# Path taken
+	ax.plot(positions[:,0], positions[:,1], positions[:,2], color='red')
 
 	# Arrows
 	vec = np.repeat(np.array([[0,0,-1.0]]), positions.shape[0], axis=0)
@@ -105,15 +109,22 @@ if args.plot_3d is not None:
 		vec[i,:] = rotate_by_quaternion(vec[i,:], orientations[i,:])
 	arrows = np.concatenate((positions, vec), axis=1).T
 	X,Y,Z,U,V,W = arrows
-	ax.quiver(X,Y,Z,U,V,W, pivot='tail', color='green', length=1.5)
+	ax.quiver(X,Y,Z,U,V,W, pivot='tail', color='blue', length=1.5, lw=0.5)
 
 	# Plot limits
-	R = 1.1*np.max(np.linalg.norm(positions, axis=1))
+	R = np.max(np.linalg.norm(positions, axis=1))
 	ax.set_xlim(-R, R)
 	ax.set_ylim(-R, R)
 	ax.set_zlim(-R, R)
 
+	# Camera position
+	ax.view_init(elev=30, azim=-60)
+	ax.dist=6
+
+	# No axes
+	ax.set_axis_off()
+
 	if args.plot_3d:
-		plt.savefig(args.plot_3d)
+		plt.savefig(args.plot_3d, bbox_inches='tight')
 	else:
 		plt.show()
