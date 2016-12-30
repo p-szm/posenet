@@ -1,6 +1,7 @@
 import argparse
 import math
 import os
+import random
 import sys
 
 import bpy
@@ -18,6 +19,8 @@ parser.add_argument('--dataset_name', action='store', required=True)
 parser.add_argument('--width', action='store', type=int, default=1000)
 parser.add_argument('--height', action='store', type=int, default=800)
 parser.add_argument('--n_images', action='store', type=int, default=10)
+parser.add_argument('--origin', action='store', type=float, nargs=3, default=[0,0,0])
+parser.add_argument('--vary_origin', action='store', type=float, default=0)
 parser.add_argument('--r', action='store', default='10')
 parser.add_argument('--phi', action='store', default='uniform[-3.1416,3.1416]')
 parser.add_argument('--theta', action='store', default='uniform[-1.5708,1.5708]')
@@ -58,13 +61,16 @@ with open(os.path.join(args.output_dir, args.dataset_name + '.txt'), 'w') as f:
         r = sample_from_interval(r_interval, i)
         phi = sample_from_interval(phi_interval, i)
         theta = sample_from_interval(theta_interval, i)
-        x = r * math.sin(theta) * math.cos(phi)
-        y = r * math.sin(theta) * math.sin(phi)
-        z = r * math.cos(theta)
+        x = args.origin[0] + r * math.sin(theta) * math.cos(phi)
+        y = args.origin[1] + r * math.sin(theta) * math.sin(phi)
+        z = args.origin[2] + r * math.cos(theta)
 
         # Set the camera location and orientation
         camera.setLocation(Vector((x, y, z)))
-        camera.look_at(Vector((0, 0, 0)))
+        var = args.vary_origin
+        camera.look_at(Vector((args.origin[0] + random.uniform(-var, var), 
+                               args.origin[1] + random.uniform(-var, var), 
+                               args.origin[2] + random.uniform(-var, var))))
         q = camera.getRotation()
 
         fnumber = str(i).zfill(fnumber_format)

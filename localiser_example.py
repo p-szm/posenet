@@ -12,6 +12,7 @@ parser.add_argument('--model', action='store', required=True)
 parser.add_argument('--dataset', action='store', required=True)
 parser.add_argument('--plot_errors', action='store', nargs='?', const='')
 parser.add_argument('--plot_3d', action='store', nargs='?', const='')
+parser.add_argument('--trace_path', action='store_true')
 args = parser.parse_args()
 
 
@@ -96,12 +97,13 @@ if args.plot_3d is not None:
 	z = r_sphere * np.outer(np.ones(np.size(u)), np.cos(v))
 	ax.plot_wireframe(x, y, z, rstride=4, cstride=4, color='black', lw=0.5)
 
-	# Correct path
-	phi = np.linspace(-np.pi/2, np.pi/2, 100)
-	ax.plot(8*np.cos(phi), 8*np.sin(phi), np.zeros(100), color='black', lw=0.5)
+	if args.trace_path:
+		# Correct path
+		phi = np.linspace(-np.pi/2, np.pi/2, 100)
+		ax.plot(8*np.cos(phi), 8*np.sin(phi), np.zeros(100), color='black', lw=0.5)
 
-	# Path taken
-	ax.plot(positions[:,0], positions[:,1], positions[:,2], color='red')
+		# Path taken
+		ax.plot(positions[:,0], positions[:,1], positions[:,2], color='red')
 
 	# Arrows
 	vec = np.repeat(np.array([[0,0,-1.0]]), positions.shape[0], axis=0)
