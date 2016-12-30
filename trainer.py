@@ -11,17 +11,28 @@ from image_reader import ImageReader
 from posenet import Posenet
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', action='store', required=True)
-parser.add_argument('--validate', action='store', required=True)
-parser.add_argument('--logdir', action='store', default='runs')
-parser.add_argument('--run', action='store', type=int, required=True)
-parser.add_argument('--save_dir', action='store', default='models')
-parser.add_argument('--restore', action='store')
-parser.add_argument('--batch_size', action='store', type=int, default=32)
-parser.add_argument('--n_iters', action='store', type=int, default=5000)
-parser.add_argument('--n_disp', action='store', type=int, default=5)
-parser.add_argument('--n_disp_validation', action='store', type=int, default=20)
+parser = argparse.ArgumentParser(description='''
+	Train the PoseNet network''')
+parser.add_argument('--dataset', action='store', required=True,
+	help='''Path to the definition file used for training''')
+parser.add_argument('--validate', action='store', required=True,
+	help='''Path to the definition file used for validation''')
+parser.add_argument('--logdir', action='store', default='runs',
+	help='''Path the the directory to which logs will be saved''')
+parser.add_argument('--run', action='store', type=int, required=True,
+	help='''Run number. Will be used to name the saved model and log file''')
+parser.add_argument('--save_dir', action='store', default='models',
+	help='''Directory in which the model will be saved''')
+parser.add_argument('--restore', action='store',
+	help='''Path to a model which will be restored''')
+parser.add_argument('--batch_size', action='store', type=int, default=32,
+	help='''Batch size for training and validation''')
+parser.add_argument('--n_iters', action='store', type=int, default=5000,
+	help='''Number of iterations for which training will be performed''')
+parser.add_argument('--n_disp', action='store', type=int, default=5,
+	help='''Calculate training accuracy every nth iteration''')
+parser.add_argument('--n_disp_validation', action='store', type=int, default=20,
+	help='''Calculate validation accuracy every nth iteration''')
 args = parser.parse_args()
 
 

@@ -4,26 +4,41 @@ import os
 import random
 import sys
 
+
 import bpy
 from mathutils import *
 
 sys.path.append(os.path.dirname(bpy.data.filepath)) # So that next import works
 from utils import *
 
-"""Renders views of an object from different sides"""
 
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--output_dir', action='store', required=True)
-parser.add_argument('--dataset_name', action='store', required=True)
-parser.add_argument('--width', action='store', type=int, default=1000)
-parser.add_argument('--height', action='store', type=int, default=800)
-parser.add_argument('--n_images', action='store', type=int, default=10)
-parser.add_argument('--origin', action='store', type=float, nargs=3, default=[0,0,0])
-parser.add_argument('--vary_origin', action='store', type=float, default=0)
-parser.add_argument('--r', action='store', default='10')
-parser.add_argument('--phi', action='store', default='uniform[-3.1416,3.1416]')
-parser.add_argument('--theta', action='store', default='uniform[-1.5708,1.5708]')
+parser = argparse.ArgumentParser(description='''
+    Renders images of an object from multiple sides. For use with a .blend file. 
+    Usage: blender -b -P from_different_sides.py -- [...arguments...]''',
+    epilog='''Intervals from a to b: uniform[a,b] or linspace[a,b]''')
+parser.add_argument('--output_dir', action='store', required=True,
+    help='''Directory to which the folder with images and definition file 
+    will be saved''')
+parser.add_argument('--dataset_name', action='store', required=True,
+    help='''Name for the folder with images and definition file which will 
+    be produced (a .txt extension will be added to the definition file)''')
+parser.add_argument('--width', action='store', type=int, default=1000,
+    help='''Width of the rendered images''')
+parser.add_argument('--height', action='store', type=int, default=800,
+    help='''Height of the rendered images''')
+parser.add_argument('--n_images', action='store', type=int, default=10,
+    help='''Number of images to be produced''')
+parser.add_argument('--origin', action='store', type=float, nargs=3, default=[0,0,0],
+    help='''Coordinates of the point on which the camera will look''')
+parser.add_argument('--vary_origin', action='store', type=float, default=0,
+    help='''The amount by which the origin point will be moved in each 
+    direction randomly''')
+parser.add_argument('--r', action='store', default='10',
+    help='''Distance from the camera to the origin. Can be an interval''')
+parser.add_argument('--phi', action='store', default='uniform[-3.1416,3.1416]',
+    help='''Azimuthal angle of the camera. Can be an interval''')
+parser.add_argument('--theta', action='store', default='uniform[-1.5708,1.5708]',
+    help='''Polar angle of the camera. Can be an interval''')
 args = parser.parse_args(preprocess_args(sys.argv))
 
 
