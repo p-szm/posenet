@@ -32,8 +32,10 @@ def parse_interval(interval):
     return a, b, interval_type
 
 def renderToFile(filename, width, height, mode='RGB'):
+    print(width, height)
     """Save the scene as a png file"""
     bpy.data.scenes['Scene'].render.filepath = filename
+    bpy.context.scene.render.resolution_percentage = 100
     bpy.context.scene.render.resolution_x = width 
     bpy.context.scene.render.resolution_y = height
     bpy.context.scene.render.image_settings.color_mode = mode

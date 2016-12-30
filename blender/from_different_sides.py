@@ -22,11 +22,11 @@ parser.add_argument('--output_dir', action='store', required=True,
 parser.add_argument('--dataset_name', action='store', required=True,
     help='''Name for the folder with images and definition file which will 
     be produced (a .txt extension will be added to the definition file)''')
-parser.add_argument('--width', action='store', type=int, default=1000,
+parser.add_argument('--width', action='store', type=int, default=500,
     help='''Width of the rendered images''')
-parser.add_argument('--height', action='store', type=int, default=800,
+parser.add_argument('--height', action='store', type=int, default=400,
     help='''Height of the rendered images''')
-parser.add_argument('--n_images', action='store', type=int, default=10,
+parser.add_argument('--n_images', action='store', type=int, default=1,
     help='''Number of images to be produced''')
 parser.add_argument('--origin', action='store', type=float, nargs=3, default=[0,0,0],
     help='''Coordinates of the point on which the camera will look''')

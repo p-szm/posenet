@@ -18,7 +18,7 @@ def read_label_file(def_file):
 
 
 class ImageReader:
-	def __init__(self, def_file, batch_size=1, image_size=224, random_crop=False, randomise=False):
+	def __init__(self, def_file, batch_size=1, image_size=[224,224], random_crop=False, randomise=False):
 		self.image_dir = os.path.dirname(def_file)
 		self.batch_size = batch_size
 		self.image_size = image_size
@@ -38,8 +38,17 @@ class ImageReader:
 			self.images = [self.images[i] for i in index_shuf]
 			self.labels = [self.labels[i] for i in index_shuf]
 
+	def _check_dimension(self, image, dim_num, dim_name):
+		if image.shape[dim_num] < self.image_size[dim_num]:
+			raise ValueError('{} dimension of the image ({}) smaller than {}'.format(
+				dim_name, image.shape[dim_num], self.image_size[dim_num]))
+
 	def _read_image(self, image_path):
 		image = img.imread(self._full_path(image_path))
+
+		# Make sure image not smaller than the desired one
+		self._check_dimension(image, 1, 'x')
+		self._check_dimension(image, 0, 'y')
 
 		# Random square crop
 		side = min(image.shape[0], image.shape[1])
