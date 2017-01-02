@@ -4,26 +4,30 @@ set -e
 
 BLENDER_FILENAME='monkey.blend'
 PYTHON_FILENAME='from_different_sides.py'
-DIRNAME='monkey2'
+DIRNAME='monkey_cap'
 
 alias blender=/Applications/blender.app/Contents/MacOS/blender
 
 # Training dataset
 blender $BLENDER_FILENAME -b -P $PYTHON_FILENAME -- \
-	--output_dir $DIRNAME --dataset_name training --n_images 100 \
-	--r uniform[6,10] --phi uniform[-0.785398,0.785398] --theta uniform[0.785398,2.356194]
+	--output_dir $DIRNAME --dataset_name training --n_images 200 \
+	--r 6 10 --vary_origin 0.5 --width 300 --height 300 \
+	--cap 0 1.57 0.785
 
 # Validation dataset
 blender $BLENDER_FILENAME -b -P $PYTHON_FILENAME -- \
 	--output_dir $DIRNAME --dataset_name validation --n_images 50 \
-	--r uniform[6,10] --phi uniform[-0.785398,0.785398] --theta uniform[0.785398,2.356194]
+	--r 6 10 --vary_origin 0.5 --width 300 --height 300 \
+	--cap 0 1.57 0.785
 
 # Test dataset 1
 blender $BLENDER_FILENAME -b -P $PYTHON_FILENAME -- \
 	--output_dir $DIRNAME --dataset_name test1 --n_images 100 \
-	--r uniform[6,10] --phi uniform[-0.785398,0.785398] --theta uniform[0.785398,2.356194]
+	--r 6 10 --vary_origin 0.5 --width 300 --height 300 \
+	--cap 0 1.57 1.57
 
 # Test dataset 2
 blender $BLENDER_FILENAME -b -P $PYTHON_FILENAME -- \
 	--output_dir $DIRNAME --dataset_name test2 --n_images 100 \
-	--r 8 --phi linspace[-1.570796,1.570796] --theta 1.570796
+	--r 8 8 --vary_origin 0 --width 300 --height 300 \
+	--linear -1.57 1.57 1.57 1.57

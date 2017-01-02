@@ -4,9 +4,9 @@ import os
 import random
 import sys
 
-
 import bpy
 from mathutils import *
+import numpy as np
 
 sys.path.append(os.path.dirname(bpy.data.filepath)) # So that next import works
 from utils import *
@@ -33,55 +33,54 @@ parser.add_argument('--origin', action='store', type=float, nargs=3, default=[0,
 parser.add_argument('--vary_origin', action='store', type=float, default=0,
     help='''The amount by which the origin point will be moved in each 
     direction randomly''')
-parser.add_argument('--r', action='store', default='10',
-    help='''Distance from the camera to the origin. Can be an interval''')
-parser.add_argument('--phi', action='store', default='uniform[-3.1416,3.1416]',
-    help='''Azimuthal angle of the camera. Can be an interval''')
-parser.add_argument('--theta', action='store', default='uniform[-1.5708,1.5708]',
-    help='''Polar angle of the camera. Can be an interval''')
+parser.add_argument('--spherical', action='store', type=float, nargs=4,
+    help='''Camera poses are distributed uniformly on a sphere part defined by 
+    [phi_start, phi_end, theta_start, theta_end]''')
+parser.add_argument('--cap', action='store', type=float, nargs=3,
+    help='''Camera poses are distributed uniformly on a sphere cap centred at 
+    [phi, theta]
+    and spanning an angle 2*alpha. Arguments: [phi,theta,alpha]''')
+parser.add_argument('--linear', action='store', type=float, nargs=4,
+    help='''Camera poses move linearly on a path defined by 
+    [phi_start, phi_end, theta_start, theta_end]''')
+parser.add_argument('--r', action='store', type=float, nargs=2, default=[8,8],
+    help='''Radius varies randomly (uniform) in the range [r_star, r_end]''')
 args = parser.parse_args(preprocess_args(sys.argv))
 
 
-scene = bpy.data.scenes["Scene"]
-camera = Camera(scene.camera)
-
-r_interval = parse_interval(args.r)
-phi_interval = parse_interval(args.phi)
-theta_interval = parse_interval(args.theta)
-
-def sample_from_interval(interval, i):
-    if type(interval) is int or type(interval) is float:
-        # Constant
-        return interval
-    if len(interval) == 3:
-        interval_type = interval[2]
-        if interval_type == 'uniform':
-            return random.uniform(interval[0], interval[1])
-        elif interval_type == 'linspace':
-            return interval[0] + i * (interval[1] - interval[0]) / (args.n_images - 1)
-        else:
-            raise ValueError('Unknown interval type: {}'.format(interval_type))
-
 if not os.path.exists(args.output_dir):
     os.makedirs(args.output_dir)
+
+# Generate camera poses
+if args.spherical:
+    x, y, z = sample_spherical(args.n_images, 
+                               phi1=args.spherical[0], phi2=args.spherical[1],
+                               theta1=args.spherical[2], theta2=args.spherical[3])
+elif args.cap:
+    x, y, z = sample_cap(args.n_images, cap_phi=args.cap[0], cap_theta=args.cap[1],
+                         cap_alpha=args.cap[2])
+elif args.linear:
+    phi = np.linspace(args.linear[0], args.linear[1], args.n_images)
+    theta = np.linspace(args.linear[2], args.linear[3], args.n_images)
+    x, y, z = to_cartesian(phi, theta)
+
+n_images = len(x)
 
 with open(os.path.join(args.output_dir, args.dataset_name + '.txt'), 'w') as f:
     # Write header
     f.write('{}\n'.format(args.dataset_name))
     f.write('ImageFile, Camera Position [X Y Z W P Q R]\n\n')
 
-    fnumber_format = int(math.ceil(math.log10(args.n_images)))
+    fnumber_format = int(math.ceil(math.log10(n_images)))
 
-    for i in range(args.n_images):
-        r = sample_from_interval(r_interval, i)
-        phi = sample_from_interval(phi_interval, i)
-        theta = sample_from_interval(theta_interval, i)
-        x = args.origin[0] + r * math.sin(theta) * math.cos(phi)
-        y = args.origin[1] + r * math.sin(theta) * math.sin(phi)
-        z = args.origin[2] + r * math.cos(theta)
+    scene = bpy.data.scenes["Scene"]
+    camera = Camera(scene.camera)
+
+    for i in range(n_images):
+        r = random.uniform(args.r[0], args.r[1])
 
         # Set the camera location and orientation
-        camera.setLocation(Vector((x, y, z)))
+        camera.setLocation(Vector((r*x[i], r*y[i], r*z[i])))
         var = args.vary_origin
         camera.look_at(Vector((args.origin[0] + random.uniform(-var, var), 
                                args.origin[1] + random.uniform(-var, var), 
@@ -96,3 +95,5 @@ with open(os.path.join(args.output_dir, args.dataset_name + '.txt'), 'w') as f:
 
         # Write the camera pose to a file
         f.write('{} {}\n'.format(fname, camera.getPoseString()))
+
+    print('\nGenerated {} images'.format(n_images))
