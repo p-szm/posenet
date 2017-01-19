@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description='''
     Train the PoseNet network''')
 parser.add_argument('--dataset', action='store', required=True,
     help='''Path to the definition file used for training''')
-parser.add_argument('--validate', action='store', required=True,
+parser.add_argument('--validate', action='store', required=False,
     help='''Path to the definition file used for validation''')
 parser.add_argument('--logdir', action='store', default='runs',
     help='''Path the the directory to which logs will be saved''')
@@ -48,7 +48,8 @@ if not tf.gfile.Exists(args.save_dir):
 
 # Prepare input queues
 train_reader = ImageReader(args.dataset, args.batch_size, [n_input, n_input], False, True)
-validation_reader = ImageReader(args.validate, args.batch_size, [n_input, n_input], False, True)
+if args.validate:
+    validation_reader = ImageReader(args.validate, args.batch_size, [n_input, n_input], False, True)
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input, n_input, 3], name="InputData")
@@ -57,7 +58,8 @@ y = tf.placeholder(tf.float32, [None, 7], name="LabelData")
 # Define the network
 poseNet = Posenet()
 train_output, train_loss, train_summaries = poseNet.create_trainable(x, y, beta=beta)
-validation_output, validation_loss, validation_summaries = poseNet.create_validation(x, y, beta=beta, reuse=True)
+if args.validate:
+    validation_output, validation_loss, validation_summaries = poseNet.create_validation(x, y, beta=beta, reuse=True)
 
 # Define the optimiser
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(train_loss)
@@ -100,7 +102,7 @@ with tf.Session() as sess:
                 summary_writer.add_summary(res, i)
             print("(TRAIN) Loss= " + "{:.6f}".format(results[0]))
 
-        if (i % args.n_disp_validation == 0):
+        if args.validate and (i % args.n_disp_validation == 0):
             val_images_feed, val_labels_feed = validation_reader.next_batch()
             results = sess.run(
                 [validation_loss]+validation_summaries, feed_dict={x: val_images_feed, y: val_labels_feed})

@@ -96,4 +96,6 @@ with open(os.path.join(args.output_dir, args.dataset_name + '.txt'), 'w') as f:
         # Write the camera pose to a file
         f.write('{} {}\n'.format(fname, camera.getPoseString()))
 
+        print(i, file=sys.stderr)
+
     print('\nGenerated {} images'.format(n_images))
