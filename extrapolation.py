@@ -37,7 +37,7 @@ positions = np.empty([0,3])
 orientations = np.empty([0,4])
 
 with Localiser(input_size, args.model) as localiser:
-    print 'Localising...'
+    print('Localising...')
     for i in range(test_reader.total_images()):
         images_feed, labels_feed = test_reader.next_batch()
         gt = {'x': labels_feed[0][0:3], 'q': labels_feed[0][3:7]}
@@ -46,7 +46,7 @@ with Localiser(input_size, args.model) as localiser:
         predicted = localiser.localise(images_feed)
         x, y, z = predicted['x']
         q1, q2, q3, q4 = predicted['q']
-        print predicted
+        print(predicted)
 
         pos_error = l2_distance(gt['x'], predicted['x'])
         orient_error = quaternion_distance(gt['q'], predicted['q']) * 180 / np.pi
@@ -59,7 +59,7 @@ with Localiser(input_size, args.model) as localiser:
         print('-------------{}-------------'.format(i))
         print('Positional error:  {}'.format(pos_error))
         print('Orientation error: {}'.format(orient_error))
-    print 'Done'
+    print('Done')
 
 
 if args.plot_errors is not None:

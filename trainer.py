@@ -75,7 +75,7 @@ with tf.Session() as sess:
     sess.run(init)
 
     if args.restore:
-        print "Restoring the model..."
+        print("Restoring the model...")
         saver.restore(sess, os.path.abspath(args.restore))
         print("Model restored from {}".format(args.restore))
 
@@ -95,7 +95,7 @@ with tf.Session() as sess:
         sess.run([optimizer], feed_dict={x: train_images_feed, y: train_labels_feed})
 
         if (i % args.n_disp == 0):
-            print "----- Iter {} -----".format(i)
+            print("----- Iter {} -----".format(i))
             results = sess.run(
                 [train_loss]+train_summaries, feed_dict={x: train_images_feed, y: train_labels_feed})
             for res in results[1:]:
@@ -110,11 +110,11 @@ with tf.Session() as sess:
                 summary_writer.add_summary(res, i)
             print("(VALIDATION)  Loss= " + "{:.6f}".format(results[0]))
 
-    print "-----------------------------"
+    print("-----------------------------")
     print("Optimization Finished!")
     
     # Save the model
-    print "Saving the model..."
+    print("Saving the model...")
     save_path = os.path.join(args.save_dir, args.name + '.ckpt')
     saver.save(sess, save_path)
     print("Model saved in file: %s" % save_path)
