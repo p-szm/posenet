@@ -1,5 +1,7 @@
 import numpy as np
 
+from utils import to_numpy
+
 def quaternion_distance(q1, q2):
     """Returns an angle that rotates q1 into q2"""
     q1 = to_numpy(q1)
