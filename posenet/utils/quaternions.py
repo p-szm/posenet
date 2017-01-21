@@ -1,17 +1,4 @@
-import math
-
 import numpy as np
-
-
-def to_numpy(arr):
-    if type(arr) is not np.ndarray:
-        return np.asarray(arr)
-    return arr
-
-def l2_distance(x, y):
-    x = to_numpy(x)
-    y = to_numpy(y)
-    return np.linalg.norm(x-y)
 
 def quaternion_distance(q1, q2):
     """Returns an angle that rotates q1 into q2"""
@@ -19,7 +6,7 @@ def quaternion_distance(q1, q2):
     q2 = to_numpy(q2)
     cos = 2*(q1.dot(q2))**2 - 1
     cos = max(min(cos, 1), -1) # To combat numerical imprecisions
-    return math.acos(cos)
+    return np.arccos(cos)
 
 def quaternion_mult(a, b):
     a = to_numpy(a)

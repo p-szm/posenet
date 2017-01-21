@@ -4,12 +4,11 @@ import os
 import random
 import sys
 
-import bpy
-from mathutils import *
 import numpy as np
 
-sys.path.append(os.path.dirname(bpy.data.filepath)) # So that next import works
-from utils import *
+sys.path.append(os.path.dirname(__file__)) # So that next imports work
+from posenet.blender import *
+from posenet.utils import *
 
 
 parser = argparse.ArgumentParser(description='''
@@ -73,8 +72,7 @@ with open(os.path.join(args.output_dir, args.dataset_name + '.txt'), 'w') as f:
 
     fnumber_format = int(math.ceil(math.log10(n_images)))
 
-    scene = bpy.data.scenes["Scene"]
-    camera = Camera(scene.camera)
+    camera = Camera(args.width, args.height)
 
     for i in range(n_images):
         r = random.uniform(args.r[0], args.r[1])
@@ -91,7 +89,7 @@ with open(os.path.join(args.output_dir, args.dataset_name + '.txt'), 'w') as f:
         fname = os.path.join(args.dataset_name, 'image{}.png'.format(fnumber))
 
         # Render current view and save it
-        renderToFile(os.path.join(args.output_dir, fname), args.width, args.height)
+        camera.takePicture(os.path.join(args.output_dir, fname))
 
         # Write the camera pose to a file
         f.write('{} {}\n'.format(fname, camera.getPoseString()))

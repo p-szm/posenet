@@ -7,8 +7,8 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
-from image_reader import ImageReader
-from posenet import Posenet
+from posenet.core.image_reader import ImageReader
+from posenet.core.posenet import Posenet
 
 
 parser = argparse.ArgumentParser(description='''
@@ -19,8 +19,8 @@ parser.add_argument('--validate', action='store', required=False,
     help='''Path to the definition file used for validation''')
 parser.add_argument('--logdir', action='store', default='runs',
     help='''Path the the directory to which logs will be saved''')
-parser.add_argument('--run', action='store', type=int, required=True,
-    help='''Run number. Will be used to name the saved model and log file''')
+parser.add_argument('--name', action='store', required=True,
+    help='''Name for the model''')
 parser.add_argument('--save_dir', action='store', default='models',
     help='''Directory in which the model will be saved''')
 parser.add_argument('--restore', action='store',
@@ -40,7 +40,7 @@ n_input = 224
 learning_rate = 0.001
 beta = 20
 
-log_dir = os.path.join(args.logdir, 'run{}'.format(args.run))
+log_dir = os.path.join(args.logdir, args.name)
 if not tf.gfile.Exists(log_dir):
     tf.gfile.MakeDirs(log_dir)
 if not tf.gfile.Exists(args.save_dir):
@@ -115,7 +115,7 @@ with tf.Session() as sess:
     
     # Save the model
     print "Saving the model..."
-    save_path = os.path.join(args.save_dir, 'model{}.ckpt'.format(args.run))
+    save_path = os.path.join(args.save_dir, args.name + '.ckpt')
     saver.save(sess, save_path)
     print("Model saved in file: %s" % save_path)
 

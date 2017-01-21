@@ -4,8 +4,8 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as np
 
-from image_reader import read_label_file
-from utils import rotate_by_quaternion
+from posenet.core.image_reader import read_label_file
+from posenet.utils import rotate_by_quaternion
 
 
 parser = argparse.ArgumentParser(description='''

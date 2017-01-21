@@ -2,8 +2,8 @@
 shopt -s expand_aliases
 set -e
 
-BLENDER_FILENAME='objects.blend'
-PYTHON_FILENAME='from_different_sides.py'
+BLENDER_FILENAME='../scenes/objects.blend'
+PYTHON_FILENAME='../from_different_sides.py'
 DIRNAME='objects'
 
 alias blender=/Applications/blender.app/Contents/MacOS/blender

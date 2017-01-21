@@ -1,3 +1,0 @@
-- Normalize the output images
-- More data augmentation on the input (lighting, blur, etc.)
-- Use a pre-trained model

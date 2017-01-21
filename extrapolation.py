@@ -2,9 +2,9 @@ import argparse
 
 import numpy as np
 
-from image_reader import ImageReader
-from localiser import Localiser
-from utils import l2_distance, quaternion_distance, rotate_by_quaternion
+from posenet.core.image_reader import ImageReader
+from posenet.core.localiser import Localiser
+from posenet.utils import l2_distance, quaternion_distance, rotate_by_quaternion
 
 
 parser = argparse.ArgumentParser(description='''
