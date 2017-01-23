@@ -5,7 +5,7 @@ import numpy as np
 from posenet.core.image_reader import ImageReader
 from posenet.core.localiser import Localiser
 from posenet.utils import l2_distance, quaternion_distance, rotate_by_quaternion
-
+from posenet.utils import to_spherical
 
 parser = argparse.ArgumentParser(description='''
     Tests a model that was trained on a single object from multiple sides''')
@@ -17,12 +17,14 @@ parser.add_argument('--plot_errors', action='store', nargs='?', const='',
     help='''Plot positional and orientation errors vs azimuthal angle 
     (from -90 to 90 deg). If no filename is specified it is plotted 
     interactively.''')
+parser.add_argument('--plot_azimuthal', action='store', nargs='?', const='')
 parser.add_argument('--plot_3d', action='store', nargs='?', const='', 
     help='''Produce a 3d plot of predicted camera poses. If no filename 
     is specified it is plotted interactively''')
 parser.add_argument('--trace_path', action='store_true',
     help='''For use with --plot_3d argument. Connect consecutive camera 
     positions with a line''')
+parser.add_argument('--r_path', action='store', type=float, default=3)
 args = parser.parse_args()
 
 
@@ -35,6 +37,7 @@ pos_errors = []
 orient_errors = []
 positions = np.empty([0,3])
 orientations = np.empty([0,4])
+azimuthal = []
 
 with Localiser(input_size, args.model) as localiser:
     print('Localising...')
@@ -55,12 +58,30 @@ with Localiser(input_size, args.model) as localiser:
 
         pos_errors.append(pos_error)
         orient_errors.append(orient_error)
+        azimuthal.append(to_spherical(x, y, z)[1]*180/np.pi)
 
         print('-------------{}-------------'.format(i))
         print('Positional error:  {}'.format(pos_error))
         print('Orientation error: {}'.format(orient_error))
     print('Done')
 
+if args.plot_azimuthal is not None:
+    import matplotlib.pyplot as plt
+
+    x = np.linspace(-90, 90, test_reader.total_images())
+
+    fig = plt.figure()
+    fig.patch.set_facecolor('white')
+    plt.plot(x, azimuthal, color='black')
+    plt.plot(x[0::4], azimuthal[0::4], 'ro', ms=3)
+    plt.xlim([-90, 90])
+    plt.ylabel("Predicted azimuthal angle")
+    plt.xlabel("True azimuthal angle")
+
+    if args.plot_azimuthal:
+        plt.savefig(args.plot_azimuthal, bbox_inches='tight')
+    else:
+        plt.show()
 
 if args.plot_errors is not None:
     import matplotlib.pyplot as plt
@@ -99,7 +120,7 @@ if args.plot_3d is not None:
     ax = fig.add_subplot(111, projection='3d')
 
     # Sphere
-    r_sphere = 3
+    r_sphere = args.r_path*0.4
     u = np.linspace(0, 2 * np.pi, 100)
     v = np.linspace(0, np.pi, 100)
     x = r_sphere * np.outer(np.cos(u), np.sin(v))
@@ -110,7 +131,7 @@ if args.plot_3d is not None:
     if args.trace_path:
         # Correct path
         phi = np.linspace(-np.pi/2, np.pi/2, 100)
-        ax.plot(8*np.cos(phi), 8*np.sin(phi), np.zeros(100), color='black', lw=0.5)
+        ax.plot(args.r_path*np.cos(phi), args.r_path*np.sin(phi), np.zeros(100), color='black', lw=0.5)
 
         # Path taken
         ax.plot(positions[:,0], positions[:,1], positions[:,2], color='red')
