@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils import to_numpy
+from posenet.utils.utils import to_numpy
 
 def quaternion_distance(q1, q2):
     """Returns an angle that rotates q1 into q2"""

@@ -2,8 +2,8 @@ import random
 
 import numpy as np
 
-from coordinates import to_cartesian
-from poisson_sampler import PoissonSampler
+from posenet.utils.coordinates import to_cartesian
+from posenet.utils.poisson_sampler import PoissonSampler
 
 
 def wrap_on_sphere(u, v, phi1, phi2, theta1, theta2):
