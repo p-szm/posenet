@@ -1,5 +1,6 @@
 import argparse
 
+import matplotlib
 import numpy as np
 
 from posenet.core.image_reader import ImageReader
@@ -25,7 +26,11 @@ parser.add_argument('--trace_path', action='store_true',
     help='''For use with --plot_3d argument. Connect consecutive camera 
     positions with a line''')
 parser.add_argument('--r_path', action='store', type=float, default=3)
+parser.add_argument('--agg', action='store_true')
 args = parser.parse_args()
+
+if args.agg:
+    matplotlib.use('Agg')
 
 
 input_size = 224
