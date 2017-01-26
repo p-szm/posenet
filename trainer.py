@@ -65,7 +65,7 @@ if args.validate:
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(train_loss)
 
 # Initializing the variables
-init = tf.initialize_all_variables()
+init = tf.global_variables_initializer()
 
 # For saving the model
 saver = tf.train.Saver()

@@ -49,7 +49,7 @@ if args.model:
             positions = np.concatenate((positions, np.asarray([predicted['x']])))
             orientations = np.concatenate((orientations, np.asarray([predicted['q']])))
 
-            progress_bar(1.0*(i+1)/n_images, 30)
+            progress_bar(1.0*(i+1)/n_images, 30, text='Localising')
         print('')
 else:
     positions = positions_gt

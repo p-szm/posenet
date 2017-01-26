@@ -14,7 +14,7 @@ class Localiser:
 
         # Initialise other stuff
         self.saver = tf.train.Saver()
-        self.init = tf.initialize_all_variables()
+        self.init = tf.global_variables_initializer()
         self.session = None
 
     def __enter__(self):
