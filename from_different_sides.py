@@ -54,7 +54,7 @@ if not os.path.exists(args.output_dir):
     os.makedirs(args.output_dir)
 
 # Generate camera poses
-n_poses = math.ceil(args.n_images/args.factor)
+n_poses = int(math.ceil(1.0*args.n_images/args.factor))
 if args.spherical:
     x, y, z = sample_spherical(n_poses, 
                                phi1=args.spherical[0], phi2=args.spherical[1],
