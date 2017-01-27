@@ -44,24 +44,32 @@ parser.add_argument('--linear', action='store', type=float, nargs=4,
     [phi_start, phi_end, theta_start, theta_end]''')
 parser.add_argument('--r', action='store', type=float, nargs=2, default=[8,8],
     help='''Radius varies randomly (uniform) in the range [r_star, r_end]''')
+parser.add_argument('--factor', action='store', type=int, default=1)
 args = parser.parse_args(preprocess_args(sys.argv))
 
+def repeat(lst, k):
+    return [v for v in lst for i in range(k)]
 
 if not os.path.exists(args.output_dir):
     os.makedirs(args.output_dir)
 
 # Generate camera poses
+n_poses = math.ceil(args.n_images/args.factor)
 if args.spherical:
-    x, y, z = sample_spherical(args.n_images, 
+    x, y, z = sample_spherical(n_poses, 
                                phi1=args.spherical[0], phi2=args.spherical[1],
                                theta1=args.spherical[2], theta2=args.spherical[3])
 elif args.cap:
-    x, y, z = sample_cap(args.n_images, cap_phi=args.cap[0], cap_theta=args.cap[1],
+    x, y, z = sample_cap(n_poses, cap_phi=args.cap[0], cap_theta=args.cap[1],
                          cap_alpha=args.cap[2])
 elif args.linear:
     phi = np.linspace(args.linear[0], args.linear[1], args.n_images)
     theta = np.linspace(args.linear[2], args.linear[3], args.n_images)
     x, y, z = to_cartesian(phi, theta)
+
+x = repeat(x, args.factor)
+y = repeat(y, args.factor)
+z = repeat(z, args.factor)
 
 n_images = len(x)
 
@@ -78,7 +86,9 @@ with open(os.path.join(args.output_dir, args.dataset_name + '.txt'), 'w') as f:
         r = random.uniform(args.r[0], args.r[1])
 
         # Set the camera location and orientation
-        camera.setLocation(Vector((r*x[i], r*y[i], r*z[i])))
+        camera.setLocation(Vector((args.origin[0] + r*x[i], 
+                                   args.origin[1] + r*y[i], 
+                                   args.origin[2] + r*z[i])))
         var = args.vary_origin
         camera.look_at(Vector((args.origin[0] + random.uniform(-var, var), 
                                args.origin[1] + random.uniform(-var, var), 
