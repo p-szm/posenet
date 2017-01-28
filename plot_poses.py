@@ -17,15 +17,17 @@ parser.add_argument('--dataset', action='store', required=True,
 parser.add_argument('--model', action='store', required=False, 
     help=''''Model used to predict camera poses. If not specified, real
     camera poses will be plotted''')
+parser.add_argument('--sphere_pos', action='store', type=float, nargs=3, default=[0,0,0])
 parser.add_argument('--r_sphere', action='store', type=float, required=False, default=1)
 parser.add_argument('--arrow_len', action='store', type=float, required=False, default=1)
 parser.add_argument('--connect', action='store_true',
     help='''Connect consecutive camera positions with lines''')
 parser.add_argument('--rings', action='store', nargs='*', required=False)
 parser.add_argument('--plot_gt', action='store_true')
+parser.add_argument('--plot_diff', action='store_true')
 args = parser.parse_args()
 
-if not args.model or args.plot_gt:
+if not args.model or args.plot_gt or args.plot_diff:
     _, labels = read_label_file(args.dataset)
     positions_gt = np.array([l[0:3] for l in labels])
     orientations_gt = np.array([l[3:7] for l in labels])
@@ -63,9 +65,9 @@ ax = fig.add_subplot(111, projection='3d')
 # Sphere
 u = np.linspace(0, 2 * np.pi, 100)
 v = np.linspace(0, np.pi, 100)
-x = args.r_sphere * np.outer(np.cos(u), np.sin(v))
-y = args.r_sphere * np.outer(np.sin(u), np.sin(v))
-z = args.r_sphere * np.outer(np.ones(np.size(u)), np.cos(v))
+x = args.sphere_pos[0] + args.r_sphere * np.outer(np.cos(u), np.sin(v))
+y = args.sphere_pos[1] + args.r_sphere * np.outer(np.sin(u), np.sin(v))
+z = args.sphere_pos[2] + args.r_sphere * np.outer(np.ones(np.size(u)), np.cos(v))
 ax.plot_wireframe(x, y, z, rstride=4, cstride=4, color='black', lw=0.5)
 
 if args.rings:
@@ -87,6 +89,13 @@ if args.connect:
 
 if args.plot_gt:
     ax.plot(positions_gt[:,0], positions_gt[:,1], positions_gt[:,2], color='black')
+
+if args.plot_diff:
+    for i in range(positions.shape[0]): # Yeah I know it's slow
+        px, py, pz = positions_gt[i][:]
+        qx, qy, qz = positions[i][:]
+        plt.plot([px, qx], [py, qy], [pz, qz], linestyle='-', color=(0.5,0.5,0.5))
+
 
 # Plot limits
 R = np.max(np.linalg.norm(positions, axis=1))
