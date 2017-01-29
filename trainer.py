@@ -47,9 +47,14 @@ if not tf.gfile.Exists(args.save_dir):
     tf.gfile.MakeDirs(args.save_dir)
 
 # Prepare input queues
-train_reader = ImageReader(args.dataset, args.batch_size, [n_input, n_input], False, True)
+train_reader = ImageReader(args.dataset, batch_size=args.batch_size, 
+                           image_size=[n_input, n_input],
+                           random_crop=False, randomise=True,
+                           augment=True)
 if args.validate:
-    validation_reader = ImageReader(args.validate, args.batch_size, [n_input, n_input], False, True)
+    validation_reader = ImageReader(args.validate, batch_size=args.batch_size, 
+                                   image_size=[n_input, n_input],
+                                   random_crop=False, randomise=True)
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input, n_input, 3], name="InputData")
