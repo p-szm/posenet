@@ -1,10 +1,11 @@
 import math
 import os
-from random import randint, shuffle
+import random
 
-import matplotlib.image as img
 import numpy as np
-import scipy.misc
+from skimage import io, transform, exposure
+from skimage.util import random_noise
+from skimage.filters import gaussian
 
 
 def read_label_file(def_file):
@@ -18,12 +19,16 @@ def read_label_file(def_file):
 
 
 class ImageReader:
-    def __init__(self, def_file, batch_size=1, image_size=[224,224], random_crop=False, randomise=False):
+    def __init__(self, def_file, batch_size=1, image_size=[224,224],
+                 scale = 1.0, random_crop=False, randomise=False, 
+                 augment=False):
         self.image_dir = os.path.dirname(def_file)
         self.batch_size = batch_size
         self.image_size = image_size
+        self.scale = scale
         self.random_crop = random_crop
         self.randomise = randomise
+        self.augment = augment
         self.images, self.labels = read_label_file(def_file)
         self.idx = 0
 
@@ -34,7 +39,7 @@ class ImageReader:
         self.idx = 0
         if self.randomise:
             index_shuf = range(len(self.images))
-            shuffle(index_shuf)
+            random.shuffle(index_shuf)
             self.images = [self.images[i] for i in index_shuf]
             self.labels = [self.labels[i] for i in index_shuf]
 
@@ -43,8 +48,16 @@ class ImageReader:
             raise ValueError('{} dimension of the image ({}) smaller than {}'.format(
                 dim_name, image.shape[dim_num], self.image_size[dim_num]))
 
+    def _augment(self, image, gamma_range=(0.5, 3.0), 
+                 gauss_range = (0, 2), noise_range = (0, 0.01)):
+        image = exposure.adjust_gamma(image, random.uniform(*gamma_range))
+        image = gaussian(image, random.uniform(*gauss_range), multichannel=True)
+        image = random_noise(image, mode='gaussian', seed=None, clip=True, 
+                var=random.uniform(*noise_range))
+        return image
+
     def _read_image(self, image_path):
-        image = img.imread(self._full_path(image_path))
+        image = io.imread(self._full_path(image_path))
 
         # Make sure image not smaller than the desired one
         self._check_dimension(image, 1, 'x')
@@ -52,13 +65,16 @@ class ImageReader:
 
         # Random square crop
         side = min(image.shape[0], image.shape[1])
-        side = max(int(side*0.95), min(*self.image_size))
-        tr_x = (image.shape[1]-side)/2 if not self.random_crop else randint(0, image.shape[1]-side)
-        tr_y = (image.shape[0]-side)/2 if not self.random_crop else randint(0, image.shape[0]-side)
+        side = max(int(side*self.scale), min(*self.image_size))
+        tr_x = (image.shape[1]-side)/2 if not self.random_crop else random.randint(0, image.shape[1]-side)
+        tr_y = (image.shape[0]-side)/2 if not self.random_crop else random.randint(0, image.shape[0]-side)
         image = image[tr_y:side+tr_y,tr_x:side+tr_x]
 
-        image = scipy.misc.imresize(image, [self.image_size[0], self.image_size[1], 3])
-        image = 2.0*image/255.0 - 1.0
+        image = transform.resize(image, (self.image_size[0], self.image_size[1], 3))
+        if self.augment:
+            image = self._augment(image)
+
+        image = 2.0*image - 1.0
         return image
 
     def next_batch(self):
