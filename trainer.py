@@ -62,9 +62,9 @@ y = tf.placeholder(tf.float32, [None, 7], name="LabelData")
 
 # Define the network
 poseNet = Posenet()
-train_output, train_loss, train_summaries = poseNet.create_trainable(x, y, beta=beta, learn_beta=False)
+train_output, train_loss, train_summaries = poseNet.create_trainable(x, y, beta=beta, learn_beta=True)
 if args.validate:
-    validation_output, validation_loss, validation_summaries = poseNet.create_validation(x, y, beta=2)
+    validation_output, validation_loss, validation_summaries = poseNet.create_validation(x, y)
 
 # Define the optimiser
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(train_loss)
