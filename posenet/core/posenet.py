@@ -106,8 +106,8 @@ class Posenet:
             try:
                 weight = tf.get_default_graph().get_tensor_by_name('PoseNet/learned_beta:0')
                 learn_beta = True
-                print 'Using learned beta'
-            except KeyError, e:
+                print('Using learned beta')
+            except KeyError:
                 if beta is None:
                     raise ValueError('The value of beta has to be specified')
                 weight = tf.constant(beta, tf.float32)

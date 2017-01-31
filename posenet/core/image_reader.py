@@ -15,7 +15,7 @@ def read_label_file(def_file):
         lines = map(lambda line: line.rstrip("\n").split(" "), f.readlines()[3:])
         paths = map(lambda line: line[0], lines)
         labels = map(lambda line: map(lambda x: float(x), line[1:]), lines)
-    return paths, labels
+    return list(paths), list(labels)
 
 
 class ImageReader:
@@ -78,6 +78,7 @@ class ImageReader:
         side = max(int(side*self.scale), min(*self.image_size))
         tr_x = (image.shape[1]-side)/2 if not self.random_crop else random.randint(0, image.shape[1]-side)
         tr_y = (image.shape[0]-side)/2 if not self.random_crop else random.randint(0, image.shape[0]-side)
+        tr_x, tr_y = int(tr_x), int(tr_y)
         image = image[tr_y:side+tr_y,tr_x:side+tr_x]
 
         image = transform.resize(image, (self.image_size[0], self.image_size[1], 3))
@@ -89,8 +90,8 @@ class ImageReader:
         return image
 
     def next_batch(self):
-        images = map(lambda image: self._read_image(image), 
-                    self.images[self.idx:self.idx+self.batch_size])
+        images = list(map(lambda image: self._read_image(image), 
+                    self.images[self.idx:self.idx+self.batch_size]))
         images = np.asarray(images)
         labels = self.labels[self.idx:self.idx+self.batch_size]
         self.idx += self.batch_size

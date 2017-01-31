@@ -1,7 +1,7 @@
 import numpy
 import tensorflow as tf
 
-from posenet import Posenet
+from .posenet import Posenet
 
 
 class Localiser:

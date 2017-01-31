@@ -78,7 +78,7 @@ if args.rings:
 
 # Draw arrows
 vec = np.repeat(np.array([[0,0,-1.0]]), positions.shape[0], axis=0)
-for i in xrange(vec.shape[0]):
+for i in range(vec.shape[0]):
     vec[i,:] = rotate_by_quaternion(vec[i,:], orientations[i,:])
 arrows = np.concatenate((positions, vec), axis=1).T
 X,Y,Z,U,V,W = arrows
