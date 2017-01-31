@@ -38,7 +38,7 @@ args = parser.parse_args()
 
 n_input = 224
 learning_rate = 0.001
-beta = 20
+beta = 4
 
 log_dir = os.path.join(args.logdir, args.name)
 if not tf.gfile.Exists(log_dir):
@@ -62,9 +62,9 @@ y = tf.placeholder(tf.float32, [None, 7], name="LabelData")
 
 # Define the network
 poseNet = Posenet()
-train_output, train_loss, train_summaries = poseNet.create_trainable(x, y, beta=beta)
+train_output, train_loss, train_summaries = poseNet.create_trainable(x, y, beta=beta, learn_beta=False)
 if args.validate:
-    validation_output, validation_loss, validation_summaries = poseNet.create_validation(x, y, beta=beta, reuse=True)
+    validation_output, validation_loss, validation_summaries = poseNet.create_validation(x, y, beta=2)
 
 # Define the optimiser
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(train_loss)

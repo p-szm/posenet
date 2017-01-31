@@ -84,7 +84,7 @@ class Posenet:
         q = tf.nn.l2_normalize(tf.slice(output, [0, 3], [-1, 4]), 1)
         return {'x': x, 'q': q}
 
-    def loss(self, outputs, gt, beta):
+    def loss(self, outputs, gt, beta, learn_beta):
         x_loss = tf.reduce_sum(tf.abs(tf.sub(outputs["x"], gt["x"])), 1)
         q_loss = tf.reduce_sum(tf.abs(tf.sub(outputs["q"], gt["q"])), 1)
         #x_loss = tf.sqrt(tf.reduce_sum(tf.square(tf.sub(outputs["x"], gt["x"])), 1) + 1e-10)
@@ -92,16 +92,30 @@ class Posenet:
 
         x_loss = tf.reduce_mean(x_loss)
         q_loss = tf.reduce_mean(q_loss)
-        total_loss = tf.add(x_loss, tf.mul(q_loss, tf.constant(beta, tf.float32)))
+
+        if learn_beta:
+            total_loss = tf.add(tf.truediv(x_loss, beta), tf.mul(q_loss, beta))
+        else:
+            total_loss = tf.add(x_loss, tf.mul(q_loss, beta))
 
         return x_loss, q_loss, total_loss
 
-    def create_validation(self, inputs, labels, beta=500, reuse=False):
+    def create_validation(self, inputs, labels, beta=None):
         summaries = []
-        with tf.variable_scope('PoseNet', reuse=reuse):
+        with tf.variable_scope('PoseNet', reuse=True):
+            try:
+                weight = tf.get_default_graph().get_tensor_by_name('PoseNet/learned_beta:0')
+                learn_beta = True
+                print 'Using learned beta'
+            except KeyError, e:
+                if beta is None:
+                    raise ValueError('The value of beta has to be specified')
+                weight = tf.constant(beta, tf.float32)
+                learn_beta = False
+
             outputs, layers = self.create_stream(inputs, dropout=None, trainable=False)
             gt = self.slice_output(labels)
-            x_loss, q_loss, total_loss = self.loss(outputs, gt, beta)
+            x_loss, q_loss, total_loss = self.loss(outputs, gt, weight, learn_beta)
 
             # And scalar smmaries
             summaries.append(tf.scalar_summary('validation/Positional Loss', x_loss))
@@ -115,13 +129,20 @@ class Posenet:
             outputs, _ = self.create_stream(inputs, dropout=None, trainable=False)
         return outputs
 
-    def create_trainable(self, inputs, labels, dropout=0.7, beta=500):
+    def create_trainable(self, inputs, labels, dropout=0.7, beta=500, learn_beta=False):
         summaries = []
         with tf.variable_scope('PoseNet'):
 
             outputs, layers = self.create_stream(inputs, dropout, trainable=True)
             gt = self.slice_output(labels)
-            x_loss, q_loss, total_loss = self.loss(outputs, gt, beta)
+
+            if learn_beta:
+                weight = tf.Variable(tf.constant(beta, tf.float32), name="learned_beta")
+                summaries.append(tf.scalar_summary('train/Beta', weight))
+            else:
+                weight = tf.constant(beta, tf.float32)
+
+            x_loss, q_loss, total_loss = self.loss(outputs, gt, weight, learn_beta)
 
             # And scalar smmaries
             summaries.append(tf.scalar_summary('train/Positional Loss', x_loss))
