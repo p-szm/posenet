@@ -49,8 +49,8 @@ class Posenet:
         'epsilon': batch_norm_epsilon,
     }
 
-    def __init__(self):
-        pass
+    def __init__(self, img_summaries=False):
+        self.img_summaries = img_summaries
 
     def create_stream(self, data_input, dropout, trainable):
 
@@ -123,24 +123,25 @@ class Posenet:
             gt = self.slice_output(labels)
             x_loss, q_loss, total_loss = self.loss(outputs, gt, beta)
 
-            # Create some image summaries
-            #create_image_summary("PoseNet/Inception_V3/Conv2d_1a_3x3/weights:0", [8, 4], "Conv2d_1a_3x3/weights")
-            summaries.append(create_image_summary(layers["Conv2d_1a_3x3"], [8, 4], "Conv2d_1a_3x3"))
-            summaries.append(create_image_summary(layers["Conv2d_2a_3x3"], [8, 4], "Conv2d_2a_3x3"))
-            summaries.append(create_image_summary(layers["Conv2d_2b_3x3"], [16, 4], "Conv2d_2b_3x3"))
-            summaries.append(create_image_summary(layers["Conv2d_3b_1x1"], [16, 5], "Conv2d_3b_1x1"))
-            summaries.append(create_image_summary(layers["Conv2d_4a_3x3"], [32, 6], "Conv2d_4a_3x3"))
-
             # And scalar smmaries
             summaries.append(tf.scalar_summary('train/Positional Loss', x_loss))
             summaries.append(tf.scalar_summary('train/Orientation Loss', q_loss))
             summaries.append(tf.scalar_summary('train/Total Loss', total_loss))
 
-            # And histogram summaries
-            summaries.append(create_histogram_summary("fc0/weights"))
-            summaries.append(create_histogram_summary("fc0/biases"))
-            summaries.append(create_histogram_summary("fc1/weights"))
-            summaries.append(create_histogram_summary("fc1/biases"))
+            if self.img_summaries:
+                # Create some image summaries
+                #create_image_summary("PoseNet/Inception_V3/Conv2d_1a_3x3/weights:0", [8, 4], "Conv2d_1a_3x3/weights")
+                summaries.append(create_image_summary(layers["Conv2d_1a_3x3"], [8, 4], "Conv2d_1a_3x3"))
+                summaries.append(create_image_summary(layers["Conv2d_2a_3x3"], [8, 4], "Conv2d_2a_3x3"))
+                summaries.append(create_image_summary(layers["Conv2d_2b_3x3"], [16, 4], "Conv2d_2b_3x3"))
+                summaries.append(create_image_summary(layers["Conv2d_3b_1x1"], [16, 5], "Conv2d_3b_1x1"))
+                summaries.append(create_image_summary(layers["Conv2d_4a_3x3"], [32, 6], "Conv2d_4a_3x3"))
+
+                # And histogram summaries
+                summaries.append(create_histogram_summary("fc0/weights"))
+                summaries.append(create_histogram_summary("fc0/biases"))
+                summaries.append(create_histogram_summary("fc1/weights"))
+                summaries.append(create_histogram_summary("fc1/biases"))
 
         #print map(lambda x: x.name, tf.get_collection(tf.GraphKeys.VARIABLES, scope='PoseNet'))
         #with tf.variable_scope("PoseNet"):
