@@ -1,5 +1,7 @@
 import argparse
 
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,9 +14,9 @@ from posenet.utils import rotate_by_quaternion
 
 parser = argparse.ArgumentParser(description='''
     Visualise camera poses given a definition file''')
-parser.add_argument('--dataset', action='store', required=True, 
+parser.add_argument('-d', '--dataset', action='store', required=True, 
     help='''Path to a text file listing images and camera poses''')
-parser.add_argument('--model', action='store', required=False, 
+parser.add_argument('-m', '--model', action='store', required=False, 
     help=''''Model used to predict camera poses. If not specified, real
     camera poses will be plotted''')
 parser.add_argument('--sphere_pos', action='store', type=float, nargs=3, default=[0,0,0])
@@ -25,6 +27,7 @@ parser.add_argument('--connect', action='store_true',
 parser.add_argument('--rings', action='store', nargs='*', required=False)
 parser.add_argument('--plot_gt', action='store_true')
 parser.add_argument('--plot_diff', action='store_true')
+parser.add_argument('-u', '--uncertainty', action='store_true')
 args = parser.parse_args()
 
 if not args.model or args.plot_gt or args.plot_diff:
@@ -41,8 +44,11 @@ if args.model:
 
     positions = np.empty([0,3])
     orientations = np.empty([0,4])
+    if args.uncertainty:
+        std_x = []
+        std_q = []
 
-    with Localiser(input_size, args.model) as localiser:
+    with Localiser(input_size, args.model, uncertainty=args.uncertainty) as localiser:
         for i in range(n_images):
             images_feed, labels_feed = test_reader.next_batch()
 
@@ -50,6 +56,9 @@ if args.model:
             predicted = localiser.localise(images_feed)
             positions = np.concatenate((positions, np.asarray([predicted['x']])))
             orientations = np.concatenate((orientations, np.asarray([predicted['q']])))
+            if args.uncertainty:
+                std_x.append(predicted['std_x'])
+                std_q.append(predicted['std_q'])
 
             progress_bar(1.0*(i+1)/n_images, 30, text='Localising')
         print('')
@@ -79,13 +88,25 @@ if args.rings:
         y = args.sphere_pos[1] + R*np.sin(phi)
         ax.plot(x, y, z, color=(0.5,0.5,0.5), lw=0.5)
 
+
+# Define color scheme for arrows
+if args.uncertainty:
+    cmap = plt.cm.jet
+    cNorm  = colors.Normalize(vmin=0, vmax=max(a+b for a, b in zip(std_x, std_q)))
+    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
+
 # Draw arrows
 vec = np.repeat(np.array([[0,0,-1.0]]), positions.shape[0], axis=0)
 for i in range(vec.shape[0]):
     vec[i,:] = rotate_by_quaternion(vec[i,:], orientations[i,:])
 arrows = np.concatenate((positions, vec), axis=1).T
 X,Y,Z,U,V,W = arrows
-ax.quiver(X,Y,Z,U,V,W, pivot='tail', color='red', length=args.arrow_len, lw=1)
+for i in range(positions.shape[0]):
+    if args.uncertainty:
+        colorVal = scalarMap.to_rgba(std_x[i]+std_q[i])
+    else:
+        colorVal = 'red'
+    ax.quiver(X[i],Y[i],Z[i],U[i],V[i],W[i], pivot='tail', color=colorVal, length=args.arrow_len, lw=1)
 
 if args.connect:
     ax.plot(positions[:,0], positions[:,1], positions[:,2], color='red')

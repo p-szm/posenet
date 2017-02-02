@@ -71,7 +71,7 @@ class Posenet:
                 last_output = tf.reshape(last_output, [-1, self.n_fc])
                 last_output = slim.fully_connected(last_output, self.n_fc, scope='fc0', trainable=trainable)
             if dropout is not None:
-                last_output = slim.dropout(last_output, keep_prob=dropout, scope='dropout_0', is_training=trainable)
+                last_output = slim.dropout(last_output, keep_prob=dropout, scope='dropout_0')
 
         # Pose Regression
         last_output = slim.fully_connected(last_output, 7,
@@ -126,9 +126,9 @@ class Posenet:
 
         return outputs, total_loss, summaries
 
-    def create_testable(self, inputs):
+    def create_testable(self, inputs, dropout=None):
         with tf.variable_scope('PoseNet'):
-            outputs, _ = self.create_stream(inputs, dropout=None, trainable=False)
+            outputs, _ = self.create_stream(inputs, dropout=dropout, trainable=False)
         return outputs
 
     def create_trainable(self, inputs, labels, dropout=0.7, beta=500, learn_beta=False):
