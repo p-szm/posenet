@@ -49,8 +49,10 @@ class Posenet:
         'epsilon': batch_norm_epsilon,
     }
 
-    def __init__(self, img_summaries=False):
+    def __init__(self, img_summaries=False, endpoint='Mixed_7c', n_fc=2048):
         self.img_summaries = img_summaries
+        self.endpoint = endpoint
+        self.n_fc = n_fc
 
     def create_stream(self, data_input, dropout, trainable):
 
@@ -63,11 +65,11 @@ class Posenet:
 
             with slim.arg_scope([slim.batch_norm], **self.batch_norm_params):
                 last_output, layers = inception.inception_v3_base(data_input, scope='Inception_V3',
-                                                          final_endpoint='Mixed_7c')
+                                                          final_endpoint=self.endpoint)
                 # Global average pooling
                 last_output = tf.reduce_mean(last_output, [1, 2])
-                last_output = tf.reshape(last_output, [-1, 2048])
-                last_output = slim.fully_connected(last_output, 2048, scope='fc0', trainable=trainable)
+                last_output = tf.reshape(last_output, [-1, self.n_fc])
+                last_output = slim.fully_connected(last_output, self.n_fc, scope='fc0', trainable=trainable)
             if dropout is not None:
                 last_output = slim.dropout(last_output, keep_prob=dropout, scope='dropout_0', is_training=trainable)
 
