@@ -8,7 +8,7 @@ class Localiser:
     def __init__(self, input_size, model_path):
         # Define the network
         self.x = tf.placeholder(tf.float32, [None, input_size, input_size, 3], name="InputData")
-        self.network = Posenet()
+        self.network = Posenet(endpoint='Mixed_5b', n_fc=256)
         self.output = self.network.create_testable(self.x)
         self.model_path = model_path
 

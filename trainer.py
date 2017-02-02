@@ -9,36 +9,36 @@ import tensorflow.contrib.slim as slim
 
 from posenet.core.image_reader import ImageReader
 from posenet.core.posenet import Posenet
+from posenet.utils import progress_bar
 
 
 parser = argparse.ArgumentParser(description='''
     Train the PoseNet network''')
-parser.add_argument('--dataset', action='store', required=True,
+parser.add_argument('-d', '--dataset', action='store', required=True,
     help='''Path to the definition file used for training''')
-parser.add_argument('--validate', action='store', required=False,
+parser.add_argument('-v', '--validate', action='store', required=False,
     help='''Path to the definition file used for validation''')
 parser.add_argument('--logdir', action='store', default='runs',
     help='''Path the the directory to which logs will be saved''')
-parser.add_argument('--name', action='store', required=True,
+parser.add_argument('-N', '--name', action='store', required=True,
     help='''Name for the model''')
 parser.add_argument('--save_dir', action='store', default='models',
     help='''Directory in which the model will be saved''')
-parser.add_argument('--restore', action='store',
+parser.add_argument('-r', '--restore', action='store',
     help='''Path to a model which will be restored''')
-parser.add_argument('--batch_size', action='store', type=int, default=32,
+parser.add_argument('-b', '--batch_size', action='store', type=int, default=32,
     help='''Batch size for training and validation''')
-parser.add_argument('--n_iters', action='store', type=int, default=5000,
+parser.add_argument('-n', '--n_iters', action='store', type=int, default=5000,
     help='''Number of iterations for which training will be performed''')
-parser.add_argument('--n_disp', action='store', type=int, default=5,
-    help='''Calculate training accuracy every nth iteration''')
-parser.add_argument('--n_disp_validation', action='store', type=int, default=20,
-    help='''Calculate validation accuracy every nth iteration''')
+parser.add_argument('-V', '--verbose', action='store_true')
 args = parser.parse_args()
 
 
 n_input = 224
 learning_rate = 0.001
 beta = 4
+n_disp = 5
+n_disp_validation = 20
 
 log_dir = os.path.join(args.logdir, args.name)
 if not tf.gfile.Exists(log_dir):
@@ -61,7 +61,7 @@ x = tf.placeholder(tf.float32, [None, n_input, n_input, 3], name="InputData")
 y = tf.placeholder(tf.float32, [None, 7], name="LabelData")
 
 # Define the network
-poseNet = Posenet()
+poseNet = Posenet(endpoint='Mixed_5b', n_fc=256)
 train_output, train_loss, train_summaries = poseNet.create_trainable(x, y, beta=beta, learn_beta=True)
 if args.validate:
     validation_output, validation_loss, validation_summaries = poseNet.create_validation(x, y)
@@ -90,36 +90,30 @@ with tf.Session() as sess:
     for i in range(args.n_iters):
         train_images_feed, train_labels_feed = train_reader.next_batch()
 
-        #for j in range(20):
-        #   ax = plt.subplot(4, 5, j+1)
-        #   a = images_feed[j,:,:,:]
-        #   ax.imshow(a.astype(np.uint8))
-        #plt.show()
-
         # Run optimization op (backprop)
         sess.run([optimizer], feed_dict={x: train_images_feed, y: train_labels_feed})
 
-        if (i % args.n_disp == 0):
-            print("----- Iter {} -----".format(i))
+        if args.verbose and (i % n_disp == 0):
             results = sess.run(
                 [train_loss]+train_summaries, feed_dict={x: train_images_feed, y: train_labels_feed})
             for res in results[1:]:
                 summary_writer.add_summary(res, i)
-            print("(TRAIN) Loss= " + "{:.6f}".format(results[0]))
+            print("i (training): Loss = " + "{:.6f}".format(results[0]))
 
-        if args.validate and (i % args.n_disp_validation == 0):
+        if args.verbose and args.validate and (i % n_disp_validation == 0):
             val_images_feed, val_labels_feed = validation_reader.next_batch()
             results = sess.run(
                 [validation_loss]+validation_summaries, feed_dict={x: val_images_feed, y: val_labels_feed})
             for res in results[1:]:
                 summary_writer.add_summary(res, i)
-            print("(VALIDATION)  Loss= " + "{:.6f}".format(results[0]))
+            print("i (validation): Loss = " + "{:.6f}".format(results[0]))
 
-    print("-----------------------------")
-    print("Optimization Finished!")
+        if not args.verbose:
+            progress_bar(1.0*(i+1)/args.n_iters, 30, text='Training', epilog='iter {}'.format(i))
+
+    print('')
     
     # Save the model
-    print("Saving the model...")
     save_path = os.path.join(args.save_dir, args.name + '.ckpt')
     saver.save(sess, save_path)
     print("Model saved in file: %s" % save_path)

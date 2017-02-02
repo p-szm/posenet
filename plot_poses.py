@@ -72,9 +72,12 @@ ax.plot_wireframe(x, y, z, rstride=4, cstride=4, color='black', lw=0.5)
 
 if args.rings:
     phi = np.linspace(-np.pi, np.pi, 100)
+    z = args.sphere_pos[2] + np.zeros(100)
     for R in args.rings:
         R = float(R)
-        ax.plot(R*np.cos(phi), R*np.sin(phi), np.zeros(100), color=(0.5,0.5,0.5), lw=0.5)
+        x = args.sphere_pos[0] + R*np.cos(phi)
+        y = args.sphere_pos[1] + R*np.sin(phi)
+        ax.plot(x, y, z, color=(0.5,0.5,0.5), lw=0.5)
 
 # Draw arrows
 vec = np.repeat(np.array([[0,0,-1.0]]), positions.shape[0], axis=0)
