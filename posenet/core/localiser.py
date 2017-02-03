@@ -34,27 +34,22 @@ class Localiser:
 
     def _localise(self, img):
         predicted = self.session.run([self.output], feed_dict={self.x: img})
-        return {'x': predicted[0]['x'][0].tolist(), 'q': predicted[0]['q'][0].tolist()}
+        return {'x': predicted[0]['x'], 'q': predicted[0]['q']}
 
-    def localise(self, img):
-        """Accepts a numpy image [size, size, n_channels] or [1, size, size, n_channels]"""
+    def localise(self, img, samples=10):
+        """Accepts a numpy image [size, size, n_channels] or [batches, size, size, n_channels]"""
         if len(img.shape) == 3:
             img = np.expand_dims(img, axis=0)
 
         if self.uncertainty:
-            positions = np.empty([0,3])
-            orientations = np.empty([0,4])
+            pred = self._localise(np.repeat(img, samples, axis=0))
 
-            for i in range(10):
-                pred = self._localise(img)
-                positions = np.concatenate((positions, np.asarray([pred['x']])))
-                orientations = np.concatenate((orientations, np.asarray([pred['q']])))
-            
-            x = list(np.mean(positions, 0))
-            q = list(np.mean(orientations, 0))
-            std_x = sum(list(np.std(positions, 0)))
-            std_q = sum(list(np.std(orientations, 0)))
+            x = list(np.mean(pred['x'], axis=0))
+            q = list(np.mean(pred['q'], axis=0))
+            std_x = sum(np.std(pred['x'], axis=0))
+            std_q = sum(np.std(pred['q'], axis=0))
+
             return {'x': x, 'q': q, 'std_x': std_x, 'std_q': std_q}
         else:
-            return self._localise(img)
-            pred.x
+            pred = self._localise(img)
+            return {'x': pred['x'][0], 'q': pred['q'][0]}
