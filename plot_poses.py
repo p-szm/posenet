@@ -67,27 +67,44 @@ else:
     orientations = orientations_gt
 
 
-# Plot
+def draw_segment(start, end, color='black', lw=1):
+    plt.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]], 
+        linestyle='-', color=color, lw=lw)
+
+def draw_sphere(pos, r, color='black', lw=1):
+    u = np.linspace(0, 2 * np.pi, 100)
+    v = np.linspace(0, np.pi, 100)
+    x = pos[0] + r * np.outer(np.cos(u), np.sin(v))
+    y = pos[1] + r * np.outer(np.sin(u), np.sin(v))
+    z = pos[2] + r * np.outer(np.ones(np.size(u)), np.cos(v))
+    ax.plot_wireframe(x, y, z, rstride=4, cstride=4, color=color, lw=lw)
+
+def draw_ring(pos, r, color='black', lw=1):
+    r = float(r)
+    phi = np.linspace(-np.pi, np.pi, 100)
+    x = pos[0] + r*np.cos(phi)
+    y = pos[1] + r*np.sin(phi)
+    z = pos[2] + np.zeros(100)
+    ax.plot(x, y, z, color=color, lw=lw)
+
+# Plot setup
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-# Sphere
-u = np.linspace(0, 2 * np.pi, 100)
-v = np.linspace(0, np.pi, 100)
-x = args.sphere_pos[0] + args.r_sphere * np.outer(np.cos(u), np.sin(v))
-y = args.sphere_pos[1] + args.r_sphere * np.outer(np.sin(u), np.sin(v))
-z = args.sphere_pos[2] + args.r_sphere * np.outer(np.ones(np.size(u)), np.cos(v))
-ax.plot_wireframe(x, y, z, rstride=4, cstride=4, color='black', lw=0.5)
+# Draw coordinates
+p0 = args.sphere_pos
+l = 2 * args.r_sphere
+draw_segment(p0, [p0[0]+l, p0[1], p0[2]], color='red', lw=1.5)
+draw_segment(p0, [p0[0], p0[1]+l, p0[2]], color='green', lw=1.5)
+draw_segment(p0, [p0[0], p0[1], p0[2]+l], color='blue', lw=1.5)
 
+# Draw sphere
+draw_sphere(args.sphere_pos, args.r_sphere, color='black', lw=0.5)
+
+# Draw rings at z=0
 if args.rings:
-    phi = np.linspace(-np.pi, np.pi, 100)
-    z = args.sphere_pos[2] + np.zeros(100)
     for R in args.rings:
-        R = float(R)
-        x = args.sphere_pos[0] + R*np.cos(phi)
-        y = args.sphere_pos[1] + R*np.sin(phi)
-        ax.plot(x, y, z, color=(0.5,0.5,0.5), lw=0.5)
-
+        draw_ring(args.sphere_pos, R, color='black', lw=0.5)
 
 # Define color scheme for arrows
 if args.uncertainty:
@@ -108,20 +125,20 @@ for i in range(positions.shape[0]):
         colorVal = 'red'
     ax.quiver(X[i],Y[i],Z[i],U[i],V[i],W[i], pivot='tail', color=colorVal, length=args.arrow_len, lw=1)
 
+# Connect consecutive predicted positions
 if args.connect:
     ax.plot(positions[:,0], positions[:,1], positions[:,2], color='red')
 
+# Draw ground truth positions (connected)
 if args.plot_gt:
     ax.plot(positions_gt[:,0], positions_gt[:,1], positions_gt[:,2], color='black')
 
+# Draw lines from gt positions to predicted positions
 if args.plot_diff:
     for i in range(positions.shape[0]): # Yeah I know it's slow
-        px, py, pz = positions_gt[i][:]
-        qx, qy, qz = positions[i][:]
-        plt.plot([px, qx], [py, qy], [pz, qz], linestyle='-', color=(0.5,0.5,0.5))
+        draw_segment(positions_gt[i][:], positions[i][:], color=(0.5, 0.5, 0.5))
 
-
-# Plot limits
+# Set limits
 R = np.max(np.linalg.norm(positions, axis=1))
 ax.set_xlim(-R, R)
 ax.set_ylim(-R, R)
