@@ -4,11 +4,13 @@ import tensorflow as tf
 import numpy as np
 
 from .posenet import Posenet
+import matplotlib.pyplot as plt
 
 
 class Localiser:
     def __init__(self, input_size, model_path, uncertainty=False):
         # Define the network
+        self.input_size = input_size
         self.x = tf.placeholder(tf.float32, [None, input_size, input_size, 3], name="InputData")
         self.network = Posenet(endpoint='Mixed_5b', n_fc=256)
         self.uncertainty = uncertainty
@@ -53,3 +55,19 @@ class Localiser:
         else:
             pred = self._localise(img)
             return {'x': pred['x'][0], 'q': pred['q'][0]}
+
+    def saliency(self, img):
+        if len(img.shape) == 3:
+            img = np.expand_dims(img, axis=0)
+
+        layer = self.network.layers['last_output']
+
+        t_obj = tf.reduce_mean(layer[0])
+        t_grad = tf.gradients(t_obj, self.x)[0][0,:,:,:]
+
+        grad = self.session.run(t_grad, {self.x: img})
+
+        grad = np.max(np.abs(grad), axis=2)
+        grad = grad/np.max(grad)
+
+        return grad

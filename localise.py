@@ -41,17 +41,20 @@ with Localiser(input_size, args.model, uncertainty=args.uncertainty) as localise
         x = [round(v, 6) for v in predicted['x']]
         q = [round(v, 6) for v in predicted['q']]
 
+        localiser.saliency(images_feed)
+
         if args.output:
             f.write('{} {} {} {} {} {} {} {}\n'.format(paths[i], x[0], x[1], x[2], q[0], q[1], q[2], q[3]))
             progress_bar(1.0*(i+1)/n_images, 30, text='Localising')
         else:
-            std_x = round(predicted['std_x'], 6)
-            std_q = round(predicted['std_q'], 6)
             print('---- {} ----'.format(paths[i]))
             print('x: {}'.format(x))
             print('q: {}'.format(q))
-            print('std_x: {}'.format(std_x))
-            print('std_q: {}'.format(std_q))
+            if args.uncertainty:
+                std_x = round(predicted['std_x'], 6)
+                std_q = round(predicted['std_q'], 6)
+                print('std_x: {}'.format(std_x))
+                print('std_q: {}'.format(std_q))
     print('')
 
     if args.output:

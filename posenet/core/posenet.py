@@ -53,6 +53,7 @@ class Posenet:
         self.img_summaries = img_summaries
         self.endpoint = endpoint
         self.n_fc = n_fc
+        self.layers = {}
 
     def create_stream(self, data_input, dropout, trainable):
 
@@ -79,6 +80,8 @@ class Posenet:
                                             activation_fn=None, weights_initializer=self.weight_init,
                                             weights_regularizer=self.weight_decay, trainable=trainable)
         
+        layers['last_output'] = last_output
+        self.layers = layers
         return self.slice_output(last_output), layers
 
     def slice_output(self, output):
