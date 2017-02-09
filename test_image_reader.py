@@ -14,14 +14,13 @@ args = parser.parse_args()
 input_size = 224
 reader = ImageReader(args.dataset, batch_size=16, 
                     image_size=[input_size, input_size], 
-                    random_crop=False, randomise=True, augment=True,
-                    normalise=False)
+                    randomise=True, augment=True)
 
 fig = plt.figure(num=None, figsize=(6, 6), dpi=80, facecolor='w')
 image, label = reader.next_batch()
 for j in range(16):
     fig.add_subplot(4, 4, j+1)
-    plt.imshow(image[j], aspect='auto')
+    plt.imshow((1+image[j])/2.0, aspect='auto')
     plt.axis('off')
 plt.subplots_adjust(hspace=0, wspace=0)
 plt.show()

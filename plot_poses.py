@@ -39,7 +39,7 @@ if args.model:
     input_size = 224
     test_reader = ImageReader(args.dataset, batch_size=1, 
                         image_size=[input_size, input_size], 
-                        random_crop=False, randomise=False)
+                        randomise=False)
     n_images = test_reader.total_images()
 
     positions = np.empty([0,3])

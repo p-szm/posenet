@@ -49,12 +49,10 @@ if not tf.gfile.Exists(args.save_dir):
 # Prepare input queues
 train_reader = ImageReader(args.dataset, batch_size=args.batch_size, 
                            image_size=[n_input, n_input],
-                           random_crop=False, randomise=True,
-                           augment=True)
+                           randomise=True, augment=True)
 if args.validate:
     validation_reader = ImageReader(args.validate, batch_size=args.batch_size, 
-                                   image_size=[n_input, n_input],
-                                   random_crop=False, randomise=True)
+                            image_size=[n_input, n_input], randomise=True)
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input, n_input, 3], name="InputData")
@@ -92,6 +90,7 @@ with tf.Session() as sess:
 
         # Run optimization op (backprop)
         sess.run([optimizer], feed_dict={x: train_images_feed, y: train_labels_feed})
+
 
         if args.verbose and (i % n_disp == 0):
             results = sess.run(

@@ -1,9 +1,10 @@
 import argparse
+import glob
 import math
 import os
 import sys
 
-from posenet.core.image_reader import ImageReader, read_label_file
+from posenet.core.image_reader import read_image, read_label_file
 from posenet.core.localiser import Localiser
 from posenet.utils import progress_bar
 
@@ -17,37 +18,44 @@ parser.add_argument('-o', '--output', action='store', required=False)
 parser.add_argument('-u', '--uncertainty', action='store_true')
 args = parser.parse_args()
 
-input_size = 224
-test_reader = ImageReader(args.dataset, batch_size=1, 
-                    image_size=[input_size, input_size], 
-                    random_crop=False, randomise=False)
-n_images = test_reader.total_images()
 
-# Read the definition file to get file names
-paths, _ = read_label_file(args.dataset)
-paths = map(lambda x: os.path.basename(x), paths)
+if os.path.isdir(args.dataset):
+    imgs = glob.glob('{}/*.png'.format(args.dataset))
+elif args.dataset.endswith('.txt'):
+    imgs, _ = read_label_file(args.dataset, full_paths=True)
+elif args.dataset.endswith('.png'):
+    imgs = [args.dataset]
+else:
+    imgs = []
+
+n_images = len(imgs)
+if n_images == 0:
+    print('No images found')
+    sys.exit(1)
 
 # Localise
+input_size = 224
 with Localiser(input_size, args.model, uncertainty=args.uncertainty) as localiser:
     if args.output:
         f = open(args.output, 'w')
         f.write('\n\n\n') # Hack for now
 
     for i in range(n_images):
-        images_feed, labels_feed = test_reader.next_batch()
+        # Load image
+        image = read_image(imgs[i], normalise=True, size=[input_size, input_size])
 
         # Make prediction
-        predicted = localiser.localise(images_feed)
+        predicted = localiser.localise(image)
         x = [round(v, 6) for v in predicted['x']]
         q = [round(v, 6) for v in predicted['q']]
 
-        localiser.saliency(images_feed)
-
+        fname = os.path.basename(imgs[i])
         if args.output:
-            f.write('{} {} {} {} {} {} {} {}\n'.format(paths[i], x[0], x[1], x[2], q[0], q[1], q[2], q[3]))
+            f.write('{} {} {} {} {} {} {} {}\n'.format(
+                fname, x[0], x[1], x[2], q[0], q[1], q[2], q[3]))
             progress_bar(1.0*(i+1)/n_images, 30, text='Localising')
         else:
-            print('---- {} ----'.format(paths[i]))
+            print('---- {} ----'.format(fname))
             print('x: {}'.format(x))
             print('q: {}'.format(q))
             if args.uncertainty:
