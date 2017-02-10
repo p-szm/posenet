@@ -39,7 +39,7 @@ crop_size = 200
 learning_rate = 0.001
 beta = 4
 n_disp = 5
-n_disp_validation = 5
+n_disp_validation = 20
 
 log_dir = os.path.join(args.logdir, args.name)
 if not tf.gfile.Exists(log_dir):
@@ -93,20 +93,22 @@ with tf.Session() as sess:
         sess.run([optimizer], feed_dict={x: train_images_feed, y: train_labels_feed})
 
 
-        if args.verbose and (i % n_disp == 0):
+        if i % n_disp == 0:
             results = sess.run(
                 [train_loss]+train_summaries, feed_dict={x: train_images_feed, y: train_labels_feed})
             for res in results[1:]:
                 summary_writer.add_summary(res, i)
-            print("i (training): Loss = " + "{:.6f}".format(results[0]))
+            if args.verbose:
+                print('{} (training): Loss = {:.6f}'.format(i, results[0]))
 
-        if args.verbose and args.validate and (i % n_disp_validation == 0):
+        if args.validate and (i % n_disp_validation == 0):
             val_images_feed, val_labels_feed = validation_reader.next_batch()
             results = sess.run(
                 [validation_loss]+validation_summaries, feed_dict={x: val_images_feed, y: val_labels_feed})
             for res in results[1:]:
                 summary_writer.add_summary(res, i)
-            print("i (validation): Loss = " + "{:.6f}".format(results[0]))
+            if args.verbose:
+                print('{} (validation): Loss = {:.6f}'.format(i, results[0]))
 
         if not args.verbose:
             progress_bar(1.0*(i+1)/args.n_iters, 30, text='Training', epilog='iter {}'.format(i))
