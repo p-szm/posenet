@@ -5,8 +5,8 @@ import sys
 
 import numpy as np
 import scipy
-from skimage import io, transform
-from skimage.exposure import adjust_gamma
+from skimage.filters.rank import median
+from skimage.morphology import disk
 
 from posenet.core.localiser import Localiser
 from posenet.core.image_reader import read_image, read_label_file
@@ -53,7 +53,8 @@ with Localiser(input_size, args.model) as localiser:
 
         # Compute the saliency map
         grad = localiser.saliency(image)
-        grad = adjust_gamma(grad, gamma=0.8)
+        grad = median(grad, disk(3))
+        grad = 1.0*grad/np.max(grad)
 
         if args.output:
             fname = os.path.join(args.output, os.path.basename(imgs[i]))
