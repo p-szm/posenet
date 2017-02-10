@@ -5,32 +5,6 @@ from tensorflow.contrib.layers import initializers
 from tensorflow.contrib.slim.nets import inception
 
 
-def create_image_summary(V, size, name):
-    if type(V) == str:
-        V = tf.get_default_graph().get_tensor_by_name(V)
-
-    V = tf.slice(V,(0,0,0,0),(1,-1,-1,-1))
-    batches, ix, iy, channels = V.get_shape().as_list()
-    V = tf.reshape(V, (ix, iy, channels))
-
-    # Add some padding
-    ix += 4
-    iy += 4
-    V = tf.image.resize_image_with_crop_or_pad(V, iy, ix)
-
-    cx = size[1]
-    cy = size[0]
-    V = tf.reshape(V,(iy,ix,cy,cx))
-    V = tf.transpose(V,(2,0,3,1)) #cy,iy,cx,ix
-    V = tf.reshape(V,(1,cy*iy,cx*ix,1))
-
-    return tf.image_summary(name, V)
-
-def create_histogram_summary(tensor_name):
-    H = tf.get_default_graph().get_tensor_by_name("PoseNet/" + tensor_name + ":0")
-    return tf.histogram_summary(tensor_name, H)
-
-
 class Posenet:
 
     # Building blocks
@@ -49,8 +23,7 @@ class Posenet:
         'epsilon': batch_norm_epsilon,
     }
 
-    def __init__(self, img_summaries=False, endpoint='Mixed_7c', n_fc=2048):
-        self.img_summaries = img_summaries
+    def __init__(self, endpoint='Mixed_7c', n_fc=2048):
         self.endpoint = endpoint
         self.n_fc = n_fc
         self.layers = {}
@@ -153,24 +126,5 @@ class Posenet:
             summaries.append(tf.scalar_summary('train/Positional Loss', x_loss))
             summaries.append(tf.scalar_summary('train/Orientation Loss', q_loss))
             summaries.append(tf.scalar_summary('train/Total Loss', total_loss))
-
-            if self.img_summaries:
-                # Create some image summaries
-                #create_image_summary("PoseNet/Inception_V3/Conv2d_1a_3x3/weights:0", [8, 4], "Conv2d_1a_3x3/weights")
-                summaries.append(create_image_summary(layers["Conv2d_1a_3x3"], [8, 4], "Conv2d_1a_3x3"))
-                summaries.append(create_image_summary(layers["Conv2d_2a_3x3"], [8, 4], "Conv2d_2a_3x3"))
-                summaries.append(create_image_summary(layers["Conv2d_2b_3x3"], [16, 4], "Conv2d_2b_3x3"))
-                summaries.append(create_image_summary(layers["Conv2d_3b_1x1"], [16, 5], "Conv2d_3b_1x1"))
-                summaries.append(create_image_summary(layers["Conv2d_4a_3x3"], [32, 6], "Conv2d_4a_3x3"))
-
-                # And histogram summaries
-                summaries.append(create_histogram_summary("fc0/weights"))
-                summaries.append(create_histogram_summary("fc0/biases"))
-                summaries.append(create_histogram_summary("fc1/weights"))
-                summaries.append(create_histogram_summary("fc1/biases"))
-
-        #print map(lambda x: x.name, tf.get_collection(tf.GraphKeys.VARIABLES, scope='PoseNet'))
-        #with tf.variable_scope("PoseNet"):
-        #    print tf.get_variable("Inception_V3/Mixed_5c/Branch_1/Conv_1_0c_5x5/weights:0")
 
         return outputs, total_loss, summaries

@@ -30,7 +30,7 @@ test_reader = ImageReader(args.dataset, batch_size=1,
 n_images = test_reader.total_images()
 
 azimuthal = []
-with Localiser(input_size, args.model) as localiser:
+with Localiser(args.model) as localiser:
     for i in range(n_images):
         images_feed, labels_feed = test_reader.next_batch()
         gt = {'x': labels_feed[0][0:3], 'q': labels_feed[0][3:7]}

@@ -12,9 +12,10 @@ args = parser.parse_args()
 
 
 input_size = 224
+crop_size = 200
 reader = ImageReader(args.dataset, batch_size=16, 
                     image_size=[input_size, input_size], 
-                    randomise=True, augment=True)
+                    randomise=True, augment=True, crop_size=[crop_size, crop_size])
 
 fig = plt.figure(num=None, figsize=(6, 6), dpi=80, facecolor='w')
 image, label = reader.next_batch()

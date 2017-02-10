@@ -37,7 +37,7 @@ orient_errors = []
 positions = np.empty([0,3])
 orientations = np.empty([0,4])
 
-with Localiser(input_size, args.model) as localiser:
+with Localiser(args.model) as localiser:
     for i in range(n_images):
         images_feed, labels_feed = test_reader.next_batch()
         gt = {'x': labels_feed[0][0:3], 'q': labels_feed[0][3:7]}

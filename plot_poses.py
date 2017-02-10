@@ -48,7 +48,7 @@ if args.model:
         std_x = []
         std_q = []
 
-    with Localiser(input_size, args.model, uncertainty=args.uncertainty) as localiser:
+    with Localiser(args.model, uncertainty=args.uncertainty) as localiser:
         for i in range(n_images):
             images_feed, labels_feed = test_reader.next_batch()
 

@@ -46,7 +46,7 @@ if args.output and not os.path.isdir(args.output):
 
 # Localise
 input_size = 224
-with Localiser(input_size, args.model) as localiser:
+with Localiser(args.model) as localiser:
     for i in range(n_images):
         # Load normalised image
         image = read_image(imgs[i], normalise=True, size=[input_size, input_size])

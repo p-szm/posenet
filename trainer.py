@@ -34,11 +34,12 @@ parser.add_argument('-V', '--verbose', action='store_true')
 args = parser.parse_args()
 
 
-n_input = 224
+image_size = 224
+crop_size = 200
 learning_rate = 0.001
 beta = 4
 n_disp = 5
-n_disp_validation = 20
+n_disp_validation = 5
 
 log_dir = os.path.join(args.logdir, args.name)
 if not tf.gfile.Exists(log_dir):
@@ -48,14 +49,14 @@ if not tf.gfile.Exists(args.save_dir):
 
 # Prepare input queues
 train_reader = ImageReader(args.dataset, batch_size=args.batch_size, 
-                           image_size=[n_input, n_input],
+                           image_size=[image_size, image_size],
                            randomise=True, augment=True)
 if args.validate:
     validation_reader = ImageReader(args.validate, batch_size=args.batch_size, 
-                            image_size=[n_input, n_input], randomise=True)
+                            image_size=[image_size, image_size], randomise=True)
 
 # tf Graph input
-x = tf.placeholder(tf.float32, [None, n_input, n_input, 3], name="InputData")
+x = tf.placeholder(tf.float32, [None, None, None, 3], name="InputData")
 y = tf.placeholder(tf.float32, [None, 7], name="LabelData")
 
 # Define the network

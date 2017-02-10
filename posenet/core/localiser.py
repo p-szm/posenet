@@ -8,10 +8,9 @@ import matplotlib.pyplot as plt
 
 
 class Localiser:
-    def __init__(self, input_size, model_path, uncertainty=False):
+    def __init__(self, model_path, uncertainty=False):
         # Define the network
-        self.input_size = input_size
-        self.x = tf.placeholder(tf.float32, [None, input_size, input_size, 3], name="InputData")
+        self.x = tf.placeholder(tf.float32, [None, None, None, 3], name="InputData")
         self.network = Posenet(endpoint='Mixed_5b', n_fc=256)
         self.uncertainty = uncertainty
         if uncertainty:
@@ -39,7 +38,6 @@ class Localiser:
         return {'x': predicted[0]['x'], 'q': predicted[0]['q']}
 
     def localise(self, img, samples=10):
-        """Accepts a numpy image [size, size, n_channels] or [batches, size, size, n_channels]"""
         if len(img.shape) == 3:
             img = np.expand_dims(img, axis=0)
 

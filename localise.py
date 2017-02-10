@@ -35,7 +35,7 @@ if n_images == 0:
 
 # Localise
 input_size = 224
-with Localiser(input_size, args.model, uncertainty=args.uncertainty) as localiser:
+with Localiser(args.model, uncertainty=args.uncertainty) as localiser:
     if args.output:
         f = open(args.output, 'w')
         f.write('\n\n\n') # Hack for now
