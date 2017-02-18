@@ -45,7 +45,7 @@ if args.output and not os.path.isdir(args.output):
     os.makedirs(args.output)
 
 # Localise
-input_size = 224
+input_size = 256
 with Localiser(args.model) as localiser:
     for i in range(n_images):
         # Load normalised image

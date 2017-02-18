@@ -33,11 +33,13 @@ def read_image(path, size=None, expand_dims=False, normalise=False):
 
 class ImageReader:
     def __init__(self, def_file, batch_size=1, image_size=[224,224],
-                 crop_size=None, randomise=False, augment=False):
+                 crop_size=None, centre_crop=False, randomise=False,
+                 augment=False):
         self.image_dir = os.path.dirname(def_file)
         self.batch_size = batch_size
         self.image_size = image_size
         self.crop_size = crop_size
+        self.centre_crop = centre_crop
         self.randomise = randomise
         self.augment = augment
         self.images, self.labels = read_label_file(def_file)
@@ -77,8 +79,12 @@ class ImageReader:
         if self.augment:
             image = self._augment(image, noise_range=(0, 0.005), chance=0.5)
         if self.crop_size is not None:
-            offset_x = random.randint(0, self.image_size[0]-self.crop_size[0])
-            offset_y = random.randint(0, self.image_size[1]-self.crop_size[1])
+            if self.centre_crop:
+                offset_x = int(math.floor((self.image_size[0]-self.crop_size[0])/2))
+                offset_y = int(math.floor((self.image_size[1]-self.crop_size[1])/2))
+            else:
+                offset_x = random.randint(0, self.image_size[0]-self.crop_size[0])
+                offset_y = random.randint(0, self.image_size[1]-self.crop_size[1])
             image = image[offset_y:offset_y+self.crop_size[1],
                           offset_x:offset_x+self.crop_size[0], :]
 

@@ -36,10 +36,9 @@ if not args.model or args.plot_gt or args.plot_diff:
     orientations_gt = np.array([l[3:7] for l in labels])
 
 if args.model:
-    input_size = 224
+    input_size = 256
     test_reader = ImageReader(args.dataset, batch_size=1, 
-                        image_size=[input_size, input_size], 
-                        randomise=False)
+                        image_size=[input_size, input_size], randomise=False)
     n_images = test_reader.total_images()
 
     positions = np.empty([0,3])
