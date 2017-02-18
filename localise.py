@@ -34,7 +34,7 @@ if n_images == 0:
     sys.exit(1)
 
 # Localise
-input_size = 224
+input_size = 256
 with Localiser(args.model, uncertainty=args.uncertainty) as localiser:
     if args.output:
         f = open(args.output, 'w')
