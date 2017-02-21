@@ -1,4 +1,8 @@
 
+blender/renders
+datasets/
+!datasets/*.sh
+
 # Created by https://www.gitignore.io/api/osx,python
 
 ### OSX ###
@@ -120,5 +124,3 @@ ENV/
 .ropeproject
 
 # End of https://www.gitignore.io/api/osx,python
-
-blender/renders
