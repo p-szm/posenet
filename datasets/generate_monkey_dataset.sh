@@ -6,7 +6,13 @@ BLENDER_FILENAME='../scenes/monkey.blend'
 PYTHON_FILENAME='../from_different_sides.py'
 DIRNAME='monkey_cap'
 
-alias blender=/Applications/blender.app/Contents/MacOS/blender
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+    echo "linux detected"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    alias blender=/Applications/blender.app/Contents/MacOS/blender
+else
+    echo "Unsupported OS"
+fi
 
 # Training dataset
 blender $BLENDER_FILENAME -b -P $PYTHON_FILENAME -- \
