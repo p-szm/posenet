@@ -34,8 +34,8 @@ parser.add_argument('-V', '--verbose', action='store_true')
 args = parser.parse_args()
 
 
-image_size = 224
-crop_size = 200
+image_size = 256
+crop_size = 224
 learning_rate = 0.001
 beta = 4
 n_disp = 5
