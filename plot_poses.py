@@ -1,19 +1,12 @@
 import argparse
 
-import matplotlib.colors as colors
-import matplotlib.cm as cmx
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
-
-from posenet.core.image_reader import ImageReader, read_label_file
-from posenet.core.localiser import Localiser
-from posenet.utils import progress_bar
-from posenet.utils import rotate_by_quaternion
 
 
 parser = argparse.ArgumentParser(description='''
     Visualise camera poses given a definition file''')
+parser.add_argument('--agg', action='store_true')
 parser.add_argument('-d', '--dataset', action='store', required=True, 
     help='''Path to a text file listing images and camera poses''')
 parser.add_argument('-m', '--model', action='store', required=False, 
@@ -28,12 +21,30 @@ parser.add_argument('--rings', action='store', nargs='*', required=False)
 parser.add_argument('--plot_gt', action='store_true')
 parser.add_argument('--plot_diff', action='store_true')
 parser.add_argument('-u', '--uncertainty', action='store_true')
+parser.add_argument('-a', '--axis', action='store_true')
+parser.add_argument('-c', '--convert_to_axis', action='store_true')
+parser.add_argument('--save', action='store', required=False)
 args = parser.parse_args()
 
+if args.agg:
+    matplotlib.use('Agg')
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+
+from posenet.core.image_reader import ImageReader, read_label_file
+from posenet.core.localiser import Localiser
+from posenet.utils import progress_bar
+from posenet.utils import rotate_by_quaternion
+
+
+output_type = 'axis' if args.axis else 'quat'
+
 if not args.model or args.plot_gt or args.plot_diff:
-    _, labels = read_label_file(args.dataset)
+    _, labels = read_label_file(args.dataset, convert_to_axis=args.convert_to_axis)
     positions_gt = np.array([l[0:3] for l in labels])
-    orientations_gt = np.array([l[3:7] for l in labels])
+    orientations_gt = np.array([l[3:] for l in labels])
 
 if args.model:
     input_size = 256
@@ -41,26 +52,28 @@ if args.model:
                         image_size=[input_size, input_size], randomise=False)
     n_images = test_reader.total_images()
 
-    positions = np.empty([0,3])
-    orientations = np.empty([0,4])
+    positions = []
+    orientations = []
     if args.uncertainty:
         std_x = []
         std_q = []
 
-    with Localiser(args.model, uncertainty=args.uncertainty) as localiser:
+    with Localiser(args.model, uncertainty=args.uncertainty, output_type=output_type) as localiser:
         for i in range(n_images):
             images_feed, labels_feed = test_reader.next_batch()
 
             # Make prediction
             predicted = localiser.localise(images_feed)
-            positions = np.concatenate((positions, np.asarray([predicted['x']])))
-            orientations = np.concatenate((orientations, np.asarray([predicted['q']])))
+            positions.append(predicted['x'])
+            orientations.append(predicted['q'])
             if args.uncertainty:
                 std_x.append(predicted['std_x'])
                 std_q.append(predicted['std_q'])
 
             progress_bar(1.0*(i+1)/n_images, 30, text='Localising')
         print('')
+    positions = np.array(positions)
+    orientations = np.array(orientations)
 else:
     positions = positions_gt
     orientations = orientations_gt
@@ -114,7 +127,10 @@ if args.uncertainty:
 # Draw arrows
 vec = np.repeat(np.array([[0,0,-1.0]]), positions.shape[0], axis=0)
 for i in range(vec.shape[0]):
-    vec[i,:] = rotate_by_quaternion(vec[i,:], orientations[i,:])
+    if args.axis:
+        vec[i,:] = orientations[i,:]
+    else:
+        vec[i,:] = rotate_by_quaternion(vec[i,:], orientations[i,:])
 arrows = np.concatenate((positions, vec), axis=1).T
 X,Y,Z,U,V,W = arrows
 for i in range(positions.shape[0]):
@@ -147,6 +163,8 @@ ax.set_zlim(-R, R)
 ax.view_init(elev=30, azim=-60)
 ax.dist=6
 
-# No axes
-ax.set_axis_off()
-plt.show()
+ax.set_axis_off() # No axes
+if args.save:
+    plt.savefig(args.save, bbox_inches='tight')
+else:
+    plt.show()

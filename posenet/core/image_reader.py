@@ -7,8 +7,10 @@ from skimage import io, transform, exposure, img_as_float
 from skimage.util import random_noise
 from skimage.filters import gaussian
 
+from ..utils import quat_to_axis
 
-def read_label_file(def_file, full_paths=False):
+
+def read_label_file(def_file, full_paths=False, convert_to_axis=False):
     paths = []
     labels = []
     with open(def_file) as f:
@@ -17,6 +19,8 @@ def read_label_file(def_file, full_paths=False):
         labels = map(lambda line: map(lambda x: float(x), line[1:]), lines)
     if full_paths:
         paths = map(lambda x: os.path.join(os.path.dirname(def_file), x), paths)
+    if convert_to_axis:
+        labels = map(lambda l: l[0:3] + list(quat_to_axis(l[3:7])), labels) 
     return list(paths), list(labels)
 
 
@@ -34,7 +38,7 @@ def read_image(path, size=None, expand_dims=False, normalise=False):
 class ImageReader:
     def __init__(self, def_file, batch_size=1, image_size=[224,224],
                  crop_size=None, centre_crop=False, randomise=False,
-                 augment=False):
+                 augment=False, convert_to_axis=False):
         self.image_dir = os.path.dirname(def_file)
         self.batch_size = batch_size
         self.image_size = image_size
@@ -42,7 +46,7 @@ class ImageReader:
         self.centre_crop = centre_crop
         self.randomise = randomise
         self.augment = augment
-        self.images, self.labels = read_label_file(def_file)
+        self.images, self.labels = read_label_file(def_file, convert_to_axis=convert_to_axis)
         self.idx = 0
         if randomise:
             self._shuffle()

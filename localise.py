@@ -16,6 +16,7 @@ parser.add_argument('-d', '--dataset', action='store', required=True,
     help='''Path to a text file listing images and camera poses''')
 parser.add_argument('-o', '--output', action='store', required=False)
 parser.add_argument('-u', '--uncertainty', action='store_true')
+parser.add_argument('-a', '--axis', action='store_true')
 args = parser.parse_args()
 
 
@@ -33,9 +34,11 @@ if n_images == 0:
     print('No images found')
     sys.exit(1)
 
+output_type = 'axis' if args.axis else 'quat'
+
 # Localise
 input_size = 256
-with Localiser(args.model, uncertainty=args.uncertainty) as localiser:
+with Localiser(args.model, uncertainty=args.uncertainty, output_type=output_type) as localiser:
     if args.output:
         f = open(args.output, 'w')
         f.write('\n\n\n') # Hack for now
@@ -51,8 +54,9 @@ with Localiser(args.model, uncertainty=args.uncertainty) as localiser:
 
         fname = os.path.basename(imgs[i])
         if args.output:
-            f.write('{} {} {} {} {} {} {} {}\n'.format(
-                fname, x[0], x[1], x[2], q[0], q[1], q[2], q[3]))
+            x_str = ', '.join(map(lambda p: str(p)), x)
+            q_str = ', '.join(map(lambda p: str(p)), q)
+            f.write('{}, {}'.format(x_str, q_str))
             progress_bar(1.0*(i+1)/n_images, 30, text='Localising')
         else:
             print('---- {} ----'.format(fname))

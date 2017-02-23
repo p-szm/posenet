@@ -10,7 +10,7 @@ import tensorflow.contrib.slim as slim
 
 from posenet.core.image_reader import ImageReader
 from posenet.core.posenet import Posenet
-from posenet.utils import progress_bar
+from posenet.utils import progress_bar, quat_to_axis
 
 
 parser = argparse.ArgumentParser(description='''
@@ -41,6 +41,8 @@ learning_rate = 0.001
 beta = 4
 n_disp = 5
 n_disp_validation = 20
+loss_type = 'min'
+output_type = 'quat'
 
 log_dir = os.path.join(args.logdir, args.name)
 if not tf.gfile.Exists(log_dir):
@@ -51,17 +53,20 @@ if not tf.gfile.Exists(args.save_dir):
 # Prepare input queues
 train_reader = ImageReader(args.dataset, batch_size=args.batch_size, 
                            image_size=[image_size, image_size],
-                           randomise=True, augment=True)
+                           randomise=True, augment=True,
+                           convert_to_axis=(output_type=='axis'))
 if args.validate:
     validation_reader = ImageReader(args.validate, batch_size=args.batch_size, 
-                            image_size=[image_size, image_size], randomise=True)
+                            image_size=[image_size, image_size], randomise=True,
+                            convert_to_axis=(output_type=='axis'))
 
 # tf Graph input
+k = 6 if output_type == 'axis' else 7
 x = tf.placeholder(tf.float32, [None, None, None, 3], name="InputData")
-y = tf.placeholder(tf.float32, [None, 7], name="LabelData")
+y = tf.placeholder(tf.float32, [None, k], name="LabelData")
 
 # Define the network
-poseNet = Posenet(endpoint='Mixed_5b', n_fc=256, loss_type='min')
+poseNet = Posenet(endpoint='Mixed_5b', n_fc=256, loss_type=loss_type, output_type=output_type)
 train_output, train_loss, train_summaries = poseNet.create_trainable(x, y, beta=beta, learn_beta=True)
 if args.validate:
     validation_output, validation_loss, validation_summaries = poseNet.create_validation(x, y)
@@ -92,7 +97,6 @@ with tf.Session() as sess:
 
         # Run optimization op (backprop)
         sess.run([optimizer], feed_dict={x: train_images_feed, y: train_labels_feed})
-
 
         if i % n_disp == 0:
             results = sess.run(

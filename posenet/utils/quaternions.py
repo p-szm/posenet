@@ -26,3 +26,7 @@ def rotate_by_quaternion(vec, q):
     r = np.append([0], vec)
     q_conj = q * [1,-1,-1,-1]
     return quaternion_mult(quaternion_mult(q, r), q_conj)[1:]
+
+def quat_to_axis(q):
+    p = [0,0,-1] # Default blender camera orientation
+    return rotate_by_quaternion(p, q)
