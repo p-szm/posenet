@@ -54,9 +54,9 @@ with Localiser(args.model, uncertainty=args.uncertainty, output_type=output_type
 
         fname = os.path.basename(imgs[i])
         if args.output:
-            x_str = ', '.join(map(lambda p: str(p)), x)
-            q_str = ', '.join(map(lambda p: str(p)), q)
-            f.write('{}, {}'.format(x_str, q_str))
+            x_str = ' '.join(list(map(lambda p: str(p), x)))
+            q_str = ' '.join(list(map(lambda p: str(p), q)))
+            f.write('{} {} {}\n'.format(fname, x_str, q_str))
             progress_bar(1.0*(i+1)/n_images, 30, text='Localising')
         else:
             print('---- {} ----'.format(fname))

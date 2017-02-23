@@ -44,10 +44,16 @@ if args.def_file:
     for path, label in zip(paths, labels):
         x, q = split_pose(label)
         camera.setLocation(x)
-        camera.setRotation(q)
+        if len(q) == 3:
+            camera.setAxis(q)
+        else:
+            camera.setRotation(q)
         camera.takePicture(os.path.join(args.output, path))
 elif args.pose:
     x, q = split_pose(args.pose)
     camera.setLocation(x)
-    camera.setRotation(q)
+    if len(q) == 3:
+        camera.setAxis(q)
+    else:
+        camera.setRotation(q)
     camera.takePicture(args.output)

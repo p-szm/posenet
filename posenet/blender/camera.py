@@ -24,7 +24,14 @@ class Camera:
             q = Quaternion(q)
         self.camera.rotation_euler = q.to_euler()
 
+    def setAxis(self, r):
+        if type(r) is not Vector:
+            r = Vector(r)
+        self.look_at(self.camera.location + r)
+
     def look_at(self, point):
+        if type(point) is not Vector:
+            point = Vector(point)
         # Point the camera's '-Z' and use its 'Y' as up
         q = (point - self.camera.location).to_track_quat('-Z', 'Y')
         self.camera.rotation_euler = q.to_euler()
