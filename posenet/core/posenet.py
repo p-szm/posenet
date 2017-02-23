@@ -23,10 +23,13 @@ class Posenet:
         'epsilon': batch_norm_epsilon,
     }
 
-    def __init__(self, endpoint='Mixed_7c', n_fc=2048):
+    def __init__(self, endpoint='Mixed_7c', n_fc=2048, loss_type='standard'):
         self.endpoint = endpoint
         self.n_fc = n_fc
         self.layers = {}
+        if loss_type not in ('standard', 'min'):
+            raise ValueError('Unknown loss')
+        self.loss_type = loss_type
 
     def create_stream(self, data_input, dropout, trainable):
 
@@ -64,7 +67,11 @@ class Posenet:
 
     def loss(self, outputs, gt, beta, learn_beta):
         x_loss = tf.reduce_sum(tf.abs(tf.sub(outputs["x"], gt["x"])), 1)
+
         q_loss = tf.reduce_sum(tf.abs(tf.sub(outputs["q"], gt["q"])), 1)
+        if self.loss_type == 'min':
+            q_neg_loss = tf.reduce_sum(tf.abs(tf.sub(tf.negative(outputs["q"]), gt["q"])), 1)
+            q_loss = tf.minimum(q_loss, q_neg_loss)
         #x_loss = tf.sqrt(tf.reduce_sum(tf.square(tf.sub(outputs["x"], gt["x"])), 1) + 1e-10)
         #q_loss = tf.acos(tf.clip_by_value((2*tf.square(tf.reduce_sum(tf.mul(outputs["q"], gt["q"]), 1)) - 1.0), -1.0, 1.0))
 

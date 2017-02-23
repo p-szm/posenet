@@ -1,5 +1,6 @@
 import argparse
 import os
+import random
 import sys
 
 import matplotlib.pyplot as plt
@@ -35,7 +36,7 @@ args = parser.parse_args()
 
 
 image_size = 256
-crop_size = 224
+crop_size = 256
 learning_rate = 0.001
 beta = 4
 n_disp = 5
@@ -60,7 +61,7 @@ x = tf.placeholder(tf.float32, [None, None, None, 3], name="InputData")
 y = tf.placeholder(tf.float32, [None, 7], name="LabelData")
 
 # Define the network
-poseNet = Posenet(endpoint='Mixed_5b', n_fc=256)
+poseNet = Posenet(endpoint='Mixed_5b', n_fc=256, loss_type='min')
 train_output, train_loss, train_summaries = poseNet.create_trainable(x, y, beta=beta, learn_beta=True)
 if args.validate:
     validation_output, validation_loss, validation_summaries = poseNet.create_validation(x, y)
