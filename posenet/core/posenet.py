@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from tensorflow.contrib.layers import initializers
+from tensorflow.contrib.layers import variance_scaling_initializer
 from tensorflow.contrib.slim.nets import inception
 
 
@@ -13,7 +13,7 @@ class Posenet:
     normalizer_function = staticmethod(slim.batch_norm)
 
     # Use the "MSRA" initialization
-    weight_init = staticmethod(initializers.variance_scaling_initializer())
+    weight_init = staticmethod(variance_scaling_initializer())
 
     # batch norm settings
     batch_norm_decay = 0.9997
@@ -55,7 +55,7 @@ class Posenet:
                                             normalizer_fn=None, scope='fc1',
                                             activation_fn=None, weights_initializer=self.weight_init,
                                             weights_regularizer=self.weight_decay, trainable=trainable)
-        
+
         layers['last_output'] = last_output
         self.layers = layers
         return self.slice_output(last_output), layers

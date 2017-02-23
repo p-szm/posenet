@@ -93,7 +93,6 @@ with open(os.path.join(args.output_dir, args.dataset_name + '.txt'), 'w') as f:
         camera.look_at(Vector((args.origin[0] + random.uniform(-var, var), 
                                args.origin[1] + random.uniform(-var, var), 
                                args.origin[2] + random.uniform(-var, var))))
-        q = camera.getRotation()
 
         fnumber = str(i).zfill(fnumber_format)
         fname = os.path.join(args.dataset_name, 'image{}.png'.format(fnumber))
