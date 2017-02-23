@@ -12,12 +12,12 @@ def read_label_file(def_file, full_paths=False):
     paths = []
     labels = []
     with open(def_file) as f:
-        lines = map(lambda line: line.rstrip("\n").split(" "), f.readlines()[3:])
-        paths = map(lambda line: line[0], lines)
-        labels = map(lambda line: map(lambda x: float(x), line[1:]), lines)
+        lines = [line.rstrip("\n").split(" ") for line in f.readlines()[3:]]
+        paths = [line[0] for line in lines]
+        labels = [[float(x) for x in line[1:]] for line in lines]
     if full_paths:
-        paths = map(lambda x: os.path.join(os.path.dirname(def_file), x), paths)
-    return list(paths), list(labels)
+        paths = [os.path.join(os.path.dirname(def_file), x) for x in paths]
+    return paths, labels
 
 
 def read_image(path, size=None, expand_dims=False, normalise=False):
@@ -51,7 +51,7 @@ class ImageReader:
         return os.path.join(self.image_dir, f)
 
     def _shuffle(self):
-        index_shuf = range(len(self.images))
+        index_shuf = list(range(len(self.images)))
         random.shuffle(index_shuf)
         self.images = [self.images[i] for i in index_shuf]
         self.labels = [self.labels[i] for i in index_shuf]
@@ -61,7 +61,7 @@ class ImageReader:
         if self.randomise:
             self._shuffle()
 
-    def _augment(self, image, gamma_range=(0.5, 3.0), 
+    def _augment(self, image, gamma_range=(0.5, 3.0),
                  gauss_range = (0, 2), noise_range = (0, 0.01),
                  chance=1):
         if random.uniform(0, 1) < chance:
@@ -69,7 +69,7 @@ class ImageReader:
         if random.uniform(0, 1) < chance:
             image = gaussian(image, random.uniform(*gauss_range), multichannel=True)
         if random.uniform(0, 1) < chance:
-            image = random_noise(image, mode='gaussian', seed=None, clip=True, 
+            image = random_noise(image, mode='gaussian', seed=None, clip=True,
                 var=random.uniform(*noise_range))
         return image
 
@@ -92,7 +92,7 @@ class ImageReader:
         return image
 
     def next_batch(self):
-        images = list(map(lambda image: self._read_image(image), 
+        images = list(map(lambda image: self._read_image(image),
                     self.images[self.idx:self.idx+self.batch_size]))
         images = np.asarray(images)
         labels = self.labels[self.idx:self.idx+self.batch_size]

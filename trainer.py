@@ -48,11 +48,11 @@ if not tf.gfile.Exists(args.save_dir):
     tf.gfile.MakeDirs(args.save_dir)
 
 # Prepare input queues
-train_reader = ImageReader(args.dataset, batch_size=args.batch_size, 
+train_reader = ImageReader(args.dataset, batch_size=args.batch_size,
                            image_size=[image_size, image_size],
                            randomise=True, augment=True)
 if args.validate:
-    validation_reader = ImageReader(args.validate, batch_size=args.batch_size, 
+    validation_reader = ImageReader(args.validate, batch_size=args.batch_size,
                             image_size=[image_size, image_size], randomise=True)
 
 # tf Graph input
@@ -84,7 +84,7 @@ with tf.Session() as sess:
         print("Model restored from {}".format(args.restore))
 
     # op to write logs to Tensorboard
-    summary_writer = tf.train.SummaryWriter(log_dir, graph=tf.get_default_graph())
+    summary_writer = tf.summary.FileWriter(log_dir, graph=tf.get_default_graph())
 
     for i in range(args.n_iters):
         train_images_feed, train_labels_feed = train_reader.next_batch()
@@ -114,9 +114,8 @@ with tf.Session() as sess:
             progress_bar(1.0*(i+1)/args.n_iters, 30, text='Training', epilog='iter {}'.format(i))
 
     print('')
-    
+
     # Save the model
     save_path = os.path.join(args.save_dir, args.name + '.ckpt')
     saver.save(sess, save_path)
     print("Model saved in file: %s" % save_path)
-
