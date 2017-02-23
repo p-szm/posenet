@@ -63,18 +63,18 @@ class Posenet:
         return {'x': x, 'q': q}
 
     def loss(self, outputs, gt, beta, learn_beta):
-        x_loss = tf.reduce_sum(tf.abs(tf.sub(outputs["x"], gt["x"])), 1)
-        q_loss = tf.reduce_sum(tf.abs(tf.sub(outputs["q"], gt["q"])), 1)
-        #x_loss = tf.sqrt(tf.reduce_sum(tf.square(tf.sub(outputs["x"], gt["x"])), 1) + 1e-10)
-        #q_loss = tf.acos(tf.clip_by_value((2*tf.square(tf.reduce_sum(tf.mul(outputs["q"], gt["q"]), 1)) - 1.0), -1.0, 1.0))
+        x_loss = tf.reduce_sum(tf.abs(tf.subtract(outputs["x"], gt["x"])), 1)
+        q_loss = tf.reduce_sum(tf.abs(tf.subtract(outputs["q"], gt["q"])), 1)
+        #x_loss = tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(outputs["x"], gt["x"])), 1) + 1e-10)
+        #q_loss = tf.acos(tf.clip_by_value((2*tf.square(tf.reduce_sum(tf.multiply(outputs["q"], gt["q"]), 1)) - 1.0), -1.0, 1.0))
 
         x_loss = tf.reduce_mean(x_loss)
         q_loss = tf.reduce_mean(q_loss)
 
         if learn_beta:
-            total_loss = tf.add(tf.truediv(x_loss, beta), tf.mul(q_loss, beta))
+            total_loss = tf.add(tf.truediv(x_loss, beta), tf.multiply(q_loss, beta))
         else:
-            total_loss = tf.add(x_loss, tf.mul(q_loss, beta))
+            total_loss = tf.add(x_loss, tf.multiply(q_loss, beta))
 
         return x_loss, q_loss, total_loss
 
