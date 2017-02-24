@@ -4,16 +4,16 @@ set -e
 
 BLENDER_FILENAME='../scenes/plane.blend'
 PYTHON_FILENAME='../from_different_sides.py'
-DIRNAME='plane_color'
+DIRNAME='plane'
 
 # alias blender=/Applications/blender.app/Contents/MacOS/blender
 
-# Training dataset
+# Training dense pos
 blender $BLENDER_FILENAME -b -P $PYTHON_FILENAME -- \
-	--output_dir $DIRNAME --dataset_name training --n_images 300 \
+	--output_dir $DIRNAME --dataset_name training --n_images 500 \
 	--r 2 5 --vary_origin 0.8 --origin 0 0 0 \
 	--width 256 --height 256 \
-	--spherical -3.14159 3.14159 0 3.14159 --factor 2
+	--spherical -3.14159 3.14159 0 3.14159 --factor 4
 
 # Validation dataset
 blender $BLENDER_FILENAME -b -P $PYTHON_FILENAME -- \
