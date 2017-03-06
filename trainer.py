@@ -42,7 +42,7 @@ beta = 4
 n_disp = 5
 n_disp_validation = 20
 loss_type = 'min'
-output_type = 'quat'
+output_type = 'axis'
 
 log_dir = os.path.join(args.logdir, args.name)
 if not tf.gfile.Exists(log_dir):

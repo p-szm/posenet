@@ -46,10 +46,13 @@ class Localiser:
 
             x = list(np.mean(pred['x'], axis=0))
             q = list(np.mean(pred['q'], axis=0))
-            std_x = sum(np.std(pred['x'], axis=0))
-            std_q = sum(np.std(pred['q'], axis=0))
+            std_x_all = np.std(pred['x'], axis=0)
+            std_q_all = np.std(pred['q'], axis=0)
+            std_x = sum(std_x_all)
+            std_q = sum(std_q_all)
 
-            return {'x': x, 'q': q, 'std_x': std_x, 'std_q': std_q}
+            return {'x': x, 'q': q, 'std_x': std_x, 'std_q': std_q, 
+                    'std_x_all': std_x_all, 'std_q_all': std_q_all}
         else:
             pred = self._localise(img)
             return {'x': pred['x'][0], 'q': pred['q'][0]}

@@ -68,9 +68,9 @@ class ImageReader:
     def _augment(self, image, gamma_range=(0.5, 3.0), 
                  gauss_range = (0, 2), noise_range = (0, 0.01),
                  color_range = (0.5, 1.5), chance=1):
-        if random.uniform(0, 1) < chance:
+        #if random.uniform(0, 1) < chance:
             # Colorize the image
-            image = np.random.uniform(color_range[0], color_range[1], [1,3]) * image
+            #image = np.random.uniform(color_range[0], color_range[1], [1,3]) * image
         if random.uniform(0, 1) < chance:
             image = exposure.adjust_gamma(image, random.uniform(*gamma_range))
         if random.uniform(0, 1) < chance:
