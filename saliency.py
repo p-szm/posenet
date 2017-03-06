@@ -19,6 +19,7 @@ parser.add_argument('-m', '--model', action='store', required=True,
 parser.add_argument('-d', '--dataset', action='store', required=True, 
     help='''Path to a text file listing images and camera poses''')
 parser.add_argument('-o', '--output', action='store', required=False)
+parser.add_argument('-a', '--axis', action='store_true')
 args = parser.parse_args()    
 
 
@@ -46,7 +47,7 @@ if args.output and not os.path.isdir(args.output):
 
 # Localise
 input_size = 256
-with Localiser(args.model) as localiser:
+with Localiser(args.model, output_type='axis' if args.axis else 'quat') as localiser:
     for i in range(n_images):
         # Load normalised image
         image = read_image(imgs[i], normalise=True, size=[input_size, input_size])
