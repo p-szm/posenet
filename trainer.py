@@ -32,6 +32,9 @@ parser.add_argument('-b', '--batch_size', action='store', type=int, default=32,
 parser.add_argument('-n', '--n_iters', action='store', type=int, default=5000,
     help='''Number of iterations for which training will be performed''')
 parser.add_argument('-V', '--verbose', action='store_true')
+parser.add_argument('--save_iters', '-s', action='store', type=int, nargs='*',
+    default=[], help='''Iterations on which to save the model (in addition to 
+    the last iteration)''')
 args = parser.parse_args()
 
 
@@ -117,11 +120,15 @@ with tf.Session() as sess:
 
         if not args.verbose:
             progress_bar(1.0*(i+1)/args.n_iters, 30, text='Training', epilog='iter {}'.format(i))
+        
+        if i+1 in args.save_iters:
+            save_path = os.path.join(args.save_dir, args.name + '_iter{}.ckpt'.format(i+1))
+            saver.save(sess, save_path)
 
     print('')
     
     # Save the model
     save_path = os.path.join(args.save_dir, args.name + '.ckpt')
     saver.save(sess, save_path)
-    print("Model saved in file: %s" % save_path)
+    print("Final model saved in file: %s" % save_path)
 
