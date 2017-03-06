@@ -7,7 +7,7 @@ import numpy as np
 from posenet.core.image_reader import read_label_file
 
 def_file = 'datasets/plane/test1.txt'
-test_file = 'localised/plane_axis_texture_background.txt'
+test_file = 'results/localised/plane_test1.txt'
 #flip = [41,None]
 #flip = [87, 135]
 flip = 'auto'
@@ -50,18 +50,22 @@ if subplots:
 	f, ax = plt.subplots(k, 1, sharex=True)
 	for i in range(k):
 		plot_orientation(ax[i], i)
+	plt.title('Orientation')
 	#f.subplots_adjust(hspace=0)
 
 	f, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
 	plot_position(ax1, 0)
 	plot_position(ax2, 1)
 	plot_position(ax3, 2)
+	plt.title('Position')
 	plt.show()
 else:
 	plt.plot(orientations_gt, color='grey')
 	plt.plot(orientations_test)
 	plt.axhline(0, color='grey', ls='dashed')
+	plt.title('Orientation')
 	plt.figure()
 	plt.plot(positions_gt, color='grey')
 	plt.plot(positions_test)
+	plt.title('Position')
 	plt.show()
