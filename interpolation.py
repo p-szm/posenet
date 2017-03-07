@@ -19,13 +19,15 @@ def plot_verticals(x):
 
 
 dataset = 'datasets/david/test1.txt'
-model = 'models/david/david_iter18000.ckpt'
+model = 'models/david_extrapolation/david_extrapolation_iter3000.ckpt'
 input_size = 256
+k = 20
+x_min, x_max = 0.5, 5.997787
 
 img_paths, labels = read_label_file(dataset, full_paths=True, convert_to_axis=True)
 n_images = len(img_paths)
 
-angle = np.linspace(-np.pi, np.pi, n_images)
+x_scale = np.linspace(x_min, x_max, n_images)
 x_gt = map(lambda l: l[0:3], labels)
 q_gt = map(lambda l: l[3:], labels)
 x = []
@@ -53,22 +55,22 @@ std_x = np.array(std_x)
 std_q = np.array(std_q)
 
 for i in range(3):
-    plot_sigma(angle, x[:,i], std_x[:,i])
-    plt.plot(angle, x_gt[:,i], color='black')
-    plt.plot(angle, x[:,i])
-    plt.plot(angle[::10], x_gt[::10,i], marker='.', lw=0, color='black')
-    plt.xlim([min(angle), max(angle)])
-    plt.ylim([1.6*np.min(x_gt), 1.6*np.max(x_gt)])
-plot_verticals(angle[::10])
-plt.savefig('plots/david/x_18k.eps', bbox_inches='tight')
+    plot_sigma(x_scale, x[:,i], std_x[:,i])
+    plt.plot(x_scale, x_gt[:,i], color='black')
+    plt.plot(x_scale, x[:,i])
+    plt.plot(x_scale[::k], x_gt[::k,i], marker='.', lw=0, color='black')
+    plt.xlim([x_min, x_max])
+    #plt.ylim([1.6*np.min(x_gt), 1.6*np.max(x_gt)])
+plot_verticals(x_scale[::k])
+plt.savefig('plots/david_extrapolation/x_3k.eps', bbox_inches='tight')
 
 plt.figure()
 for i in range(3):
-    plot_sigma(angle, q[:,i], std_q[:,i])
-    plt.plot(angle, q_gt[:,i], color='black')
-    plt.plot(angle, q[:,i])
-    plt.plot(angle[::10], q_gt[::10,i], marker='.', lw=0, color='black')
-    plt.xlim([min(angle), max(angle)])
-    plt.ylim([1.2*np.min(q_gt), 1.2*np.max(q_gt)])
-plot_verticals(angle[::10])
-plt.savefig('plots/david/q_18k.eps', bbox_inches='tight')
+    plot_sigma(x_scale, q[:,i], std_q[:,i])
+    plt.plot(x_scale, q_gt[:,i], color='black')
+    plt.plot(x_scale, q[:,i])
+    plt.plot(x_scale[::k], q_gt[::k,i], marker='.', lw=0, color='black')
+    plt.xlim([x_min, x_max])
+    #plt.ylim([1.2*np.min(q_gt), 1.2*np.max(q_gt)])
+plot_verticals(x_scale[::k])
+plt.savefig('plots/david_extrapolation/q_3k.eps', bbox_inches='tight')
