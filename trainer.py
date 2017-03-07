@@ -81,7 +81,7 @@ optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(train_l
 init = tf.global_variables_initializer()
 
 # For saving the model
-saver = tf.train.Saver()
+saver = tf.train.Saver(max_to_keep=100)
 
 # Launch the graph
 with tf.Session() as sess:
