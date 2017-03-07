@@ -48,7 +48,7 @@ with Localiser(args.model, uncertainty=args.uncertainty, output_type=output_type
         image = read_image(imgs[i], normalise=True, size=[input_size, input_size])
 
         # Make prediction
-        predicted = localiser.localise(image)
+        predicted = localiser.localise(image, samples=40)
         x = [round(v, 6) for v in predicted['x']]
         q = [round(v, 6) for v in predicted['q']]
 
