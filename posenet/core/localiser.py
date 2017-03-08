@@ -14,7 +14,7 @@ class Localiser:
         self.network = Posenet(endpoint='Mixed_5b', n_fc=256, output_type=output_type)
         self.uncertainty = uncertainty
         if uncertainty:
-            self.output = self.network.create_testable(self.x, dropout=dropout)
+            self.output = self.network.create_testable(self.x, dropout=1-dropout)
         else:
             self.output = self.network.create_testable(self.x, dropout=None)
         self.model_path = model_path
