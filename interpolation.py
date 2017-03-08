@@ -10,19 +10,22 @@ from posenet.utils import progress_bar
 
 def plot_sigma(angle, y, sigma):
     # (68-95-99.7 rule)
-    plt.fill_between(angle, y-2*sigma, y+2*sigma, 
-        facecolor=(0.9,0.9,0.9), linewidth=0.0)
+    plt.fill_between(angle, y-sigma, y+sigma, 
+        facecolor=(0,0,0,0.1), linewidth=0.0)
 
 def plot_verticals(x):
     for xc in x:
         plt.axvline(x=xc, color='k', linestyle=':')
 
 
+mode = 'extrapolation'
 dataset = 'datasets/david/test1.txt'
-model = 'models/david_extrapolation/david_extrapolation_iter3000.ckpt'
+model = 'models/david_extrapolation/david_extrapolation_iter12000.ckpt'
 input_size = 256
 k = 20
-x_min, x_max = 0.5, 5.997787
+x_min, x_max = 0, 2*np.pi
+shade = (0, 0.6, 0, 0.05)
+
 
 img_paths, labels = read_label_file(dataset, full_paths=True, convert_to_axis=True)
 n_images = len(img_paths)
@@ -35,7 +38,7 @@ q = []
 std_x = []
 std_q = []
 
-with Localiser(model, uncertainty=True, output_type='axis') as localiser:
+with Localiser(model, uncertainty=True, output_type='axis', dropout=0.3) as localiser:
     for i, path in enumerate(img_paths):
         img = read_image(path, size=[input_size, input_size], 
                 expand_dims=False, normalise=True)
@@ -55,22 +58,32 @@ std_x = np.array(std_x)
 std_q = np.array(std_q)
 
 for i in range(3):
-    plot_sigma(x_scale, x[:,i], std_x[:,i])
+    plot_sigma(x_scale, x[:,i], 2*std_x[:,i])
     plt.plot(x_scale, x_gt[:,i], color='black')
     plt.plot(x_scale, x[:,i])
-    plt.plot(x_scale[::k], x_gt[::k,i], marker='.', lw=0, color='black')
+    if mode == 'interrpolation':
+        plt.plot(x_scale[::k], x_gt[::k,i], marker='.', lw=0, color='black')
+    else:
+        plt.axvspan(np.pi/2, np.pi*5/6, color=shade)
+        plt.axvspan(np.pi*7/6, np.pi*3/2, color=shade)
     plt.xlim([x_min, x_max])
     #plt.ylim([1.6*np.min(x_gt), 1.6*np.max(x_gt)])
-plot_verticals(x_scale[::k])
-plt.savefig('plots/david_extrapolation/x_3k.eps', bbox_inches='tight')
+if mode == 'interpolation':
+    plot_verticals(x_scale[::k])
+plt.savefig('plots/david_extrapolation/x_12k.png', bbox_inches='tight')
 
 plt.figure()
 for i in range(3):
-    plot_sigma(x_scale, q[:,i], std_q[:,i])
+    plot_sigma(x_scale, q[:,i], 2*std_q[:,i])
     plt.plot(x_scale, q_gt[:,i], color='black')
     plt.plot(x_scale, q[:,i])
-    plt.plot(x_scale[::k], q_gt[::k,i], marker='.', lw=0, color='black')
+    if mode == 'interpolation':
+        plt.plot(x_scale[::k], q_gt[::k,i], marker='.', lw=0, color='black')
+    else:
+        plt.axvspan(np.pi/2, np.pi*5/6, color=shade)
+        plt.axvspan(np.pi*7/6, np.pi*3/2, color=shade)
     plt.xlim([x_min, x_max])
     #plt.ylim([1.2*np.min(q_gt), 1.2*np.max(q_gt)])
-plot_verticals(x_scale[::k])
-plt.savefig('plots/david_extrapolation/q_3k.eps', bbox_inches='tight')
+if mode == 'interpolation':
+    plot_verticals(x_scale[::k])
+plt.savefig('plots/david_extrapolation/q_12k.png', bbox_inches='tight')

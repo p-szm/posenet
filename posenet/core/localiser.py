@@ -8,13 +8,13 @@ import matplotlib.pyplot as plt
 
 
 class Localiser:
-    def __init__(self, model_path, uncertainty=False, output_type='quat'):
+    def __init__(self, model_path, uncertainty=False, output_type='quat', dropout=0.5):
         # Define the network
         self.x = tf.placeholder(tf.float32, [None, None, None, 3], name="InputData")
         self.network = Posenet(endpoint='Mixed_5b', n_fc=256, output_type=output_type)
         self.uncertainty = uncertainty
         if uncertainty:
-            self.output = self.network.create_testable(self.x, dropout=0.5)
+            self.output = self.network.create_testable(self.x, dropout=dropout)
         else:
             self.output = self.network.create_testable(self.x, dropout=None)
         self.model_path = model_path
