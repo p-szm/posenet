@@ -93,7 +93,7 @@ with tf.Session() as sess:
         print("Model restored from {}".format(args.restore))
 
     # op to write logs to Tensorboard
-    summary_writer = tf.train.SummaryWriter(log_dir, graph=tf.get_default_graph())
+    summary_writer = tf.summary.FileWriter(log_dir, graph=tf.get_default_graph())
 
     for i in range(args.n_iters):
         train_images_feed, train_labels_feed = train_reader.next_batch()

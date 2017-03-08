@@ -6,22 +6,10 @@ from tensorflow.contrib.slim.nets import inception
 
 
 class Posenet:
-
     # Building blocks
+    weight_init = staticmethod(variance_scaling_initializer()) # "MSRA" initialization
     weight_decay = staticmethod(slim.l2_regularizer(5e-5))
     activation_function = staticmethod(tf.nn.relu)
-    normalizer_function = staticmethod(slim.batch_norm)
-
-    # Use the "MSRA" initialization
-    weight_init = staticmethod(variance_scaling_initializer())
-
-    # batch norm settings
-    batch_norm_decay = 0.9997
-    batch_norm_epsilon = 0.001
-    batch_norm_params = {
-        'decay': batch_norm_decay,
-        'epsilon': batch_norm_epsilon,
-    }
 
     def __init__(self, endpoint='Mixed_7c', n_fc=2048, loss_type='standard', output_type='quat'):
         self.endpoint = endpoint
@@ -35,21 +23,17 @@ class Posenet:
         self.output_type = output_type
 
     def create_stream(self, data_input, dropout, trainable):
-
-        self.batch_norm_params['trainable'] = trainable
-
         with slim.arg_scope([slim.conv2d], padding='SAME',
-                            activation_fn=self.activation_function, weights_initializer=self.weight_init,
-                            weights_regularizer=self.weight_decay, #normalizer_fn=self.normalizer_function,
-                            normalizer_params=self.batch_norm_params, trainable=trainable):
-
-            with slim.arg_scope([slim.batch_norm], **self.batch_norm_params):
-                last_output, layers = inception.inception_v3_base(data_input, scope='Inception_V3',
-                                                          final_endpoint=self.endpoint)
-                # Global average pooling
-                last_output = tf.reduce_mean(last_output, [1, 2])
-                last_output = tf.reshape(last_output, [-1, self.n_fc])
-                last_output = slim.fully_connected(last_output, self.n_fc, scope='fc0', trainable=trainable)
+                            activation_fn=self.activation_function, 
+                            weights_initializer=self.weight_init,
+                            weights_regularizer=self.weight_decay, 
+                            trainable=trainable):
+            last_output, layers = inception.inception_v3_base(data_input, scope='Inception_V3',
+                                                      final_endpoint=self.endpoint)
+            # Global average pooling
+            last_output = tf.reduce_mean(last_output, [1, 2])
+            last_output = tf.reshape(last_output, [-1, self.n_fc])
+            last_output = slim.fully_connected(last_output, self.n_fc, scope='fc0', trainable=trainable)
             if dropout is not None:
                 last_output = slim.dropout(last_output, keep_prob=dropout, scope='dropout_0')
 
@@ -77,8 +61,6 @@ class Posenet:
         if self.output_type =='quat' and self.loss_type == 'min':
             q_neg_loss = tf.reduce_sum(tf.abs(tf.sub(tf.negative(outputs["q"]), gt["q"])), 1)
             q_loss = tf.minimum(q_loss, q_neg_loss)
-        #x_loss = tf.sqrt(tf.reduce_sum(tf.square(tf.sub(outputs["x"], gt["x"])), 1) + 1e-10)
-        #q_loss = tf.acos(tf.clip_by_value((2*tf.square(tf.reduce_sum(tf.mul(outputs["q"], gt["q"]), 1)) - 1.0), -1.0, 1.0))
 
         x_loss = tf.reduce_mean(x_loss)
         q_loss = tf.reduce_mean(q_loss)
@@ -108,9 +90,9 @@ class Posenet:
             x_loss, q_loss, total_loss = self.loss(outputs, gt, weight, learn_beta)
 
             # And scalar smmaries
-            summaries.append(tf.scalar_summary('validation/Positional Loss', x_loss))
-            summaries.append(tf.scalar_summary('validation/Orientation Loss', q_loss))
-            summaries.append(tf.scalar_summary('validation/Total Loss', total_loss))
+            summaries.append(tf.summary.scalar('validation/Positional Loss', x_loss))
+            summaries.append(tf.summary.scalar('validation/Orientation Loss', q_loss))
+            summaries.append(tf.summary.scalar('validation/Total Loss', total_loss))
 
         return outputs, total_loss, summaries
 
@@ -128,15 +110,15 @@ class Posenet:
 
             if learn_beta:
                 weight = tf.Variable(tf.constant(beta, tf.float32), name="learned_beta")
-                summaries.append(tf.scalar_summary('train/Beta', weight))
+                summaries.append(tf.summary.scalar('train/Beta', weight))
             else:
                 weight = tf.constant(beta, tf.float32)
 
             x_loss, q_loss, total_loss = self.loss(outputs, gt, weight, learn_beta)
 
             # And scalar smmaries
-            summaries.append(tf.scalar_summary('train/Positional Loss', x_loss))
-            summaries.append(tf.scalar_summary('train/Orientation Loss', q_loss))
-            summaries.append(tf.scalar_summary('train/Total Loss', total_loss))
+            summaries.append(tf.summary.scalar('train/Positional Loss', x_loss))
+            summaries.append(tf.summary.scalar('train/Orientation Loss', q_loss))
+            summaries.append(tf.summary.scalar('train/Total Loss', total_loss))
 
         return outputs, total_loss, summaries
