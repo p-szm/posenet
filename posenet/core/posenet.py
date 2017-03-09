@@ -11,7 +11,8 @@ class Posenet:
     weight_decay = staticmethod(slim.l2_regularizer(5e-5))
     activation_function = staticmethod(tf.nn.relu)
 
-    def __init__(self, endpoint='Mixed_7c', n_fc=2048, loss_type='standard', output_type='quat'):
+    def __init__(self, endpoint='Mixed_7c', n_fc=2048, loss_type='standard', 
+                output_type='quat', tau=False):
         self.endpoint = endpoint
         self.n_fc = n_fc
         self.layers = {}
@@ -21,6 +22,7 @@ class Posenet:
         if output_type not in ('quat', 'axis'):
             raise ValueError('Unknown output type')
         self.output_type = output_type
+        self.tau = tau
 
     def create_stream(self, data_input, dropout, trainable):
         with slim.arg_scope([slim.conv2d], padding='SAME',
@@ -39,6 +41,8 @@ class Posenet:
 
         # Pose Regression
         n_last = 7 if self.output_type == 'quat' else 6
+        if self.tau:
+            n_last += 1
         last_output = slim.fully_connected(last_output, n_last,
                                             normalizer_fn=None, scope='fc1',
                                             activation_fn=None, weights_initializer=self.weight_init,
@@ -48,27 +52,35 @@ class Posenet:
         self.layers = layers
         return self.slice_output(last_output), layers
 
-    def slice_output(self, output):
+    def slice_output(self, output, get_tau=True):
         x = tf.slice(output, [0, 0], [-1, 3])
         k = 4 if self.output_type == 'quat' else 3
         q = tf.nn.l2_normalize(tf.slice(output, [0, 3], [-1, k]), 1)
-        return {'x': x, 'q': q}
+        sliced = {'x': x, 'q': q}
+        if self.tau:
+            sliced['tau'] = tf.slice(output, [0, 3+k], [-1, 1])
+        return sliced
 
     def loss(self, outputs, gt, beta, learn_beta):
         x_loss = tf.reduce_sum(tf.abs(tf.sub(outputs["x"], gt["x"])), 1)
-
         q_loss = tf.reduce_sum(tf.abs(tf.sub(outputs["q"], gt["q"])), 1)
+
         if self.output_type =='quat' and self.loss_type == 'min':
             q_neg_loss = tf.reduce_sum(tf.abs(tf.sub(tf.negative(outputs["q"]), gt["q"])), 1)
             q_loss = tf.minimum(q_loss, q_neg_loss)
-
-        x_loss = tf.reduce_mean(x_loss)
-        q_loss = tf.reduce_mean(q_loss)
 
         if learn_beta:
             total_loss = tf.add(tf.truediv(x_loss, beta), tf.mul(q_loss, beta))
         else:
             total_loss = tf.add(x_loss, tf.mul(q_loss, beta))
+
+        if self.tau:
+            tau = outputs['tau']
+            total_loss = tf.add(total_loss * tf.exp(tf.negative(tau)), tau)
+
+        x_loss = tf.reduce_mean(x_loss)
+        q_loss = tf.reduce_mean(q_loss)
+        total_loss = tf.reduce_mean(total_loss)
 
         return x_loss, q_loss, total_loss
 
@@ -86,7 +98,7 @@ class Posenet:
                 learn_beta = False
 
             outputs, layers = self.create_stream(inputs, dropout=None, trainable=False)
-            gt = self.slice_output(labels)
+            gt = self.slice_output(labels, get_tau=False)
             x_loss, q_loss, total_loss = self.loss(outputs, gt, weight, learn_beta)
 
         # And scalar smmaries
@@ -105,7 +117,7 @@ class Posenet:
         summaries = []
         with tf.variable_scope('PoseNet'):
             outputs, layers = self.create_stream(inputs, dropout, trainable=True)
-            gt = self.slice_output(labels)
+            gt = self.slice_output(labels, get_tau=False)
 
             if learn_beta:
                 weight = tf.Variable(tf.constant(beta, tf.float32), name="learned_beta")

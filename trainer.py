@@ -69,7 +69,7 @@ x = tf.placeholder(tf.float32, [None, None, None, 3], name="InputData")
 y = tf.placeholder(tf.float32, [None, k], name="LabelData")
 
 # Define the network
-poseNet = Posenet(endpoint='Mixed_5b', n_fc=256, loss_type=loss_type, output_type=output_type)
+poseNet = Posenet(endpoint='Mixed_5b', n_fc=256, loss_type=loss_type, output_type=output_type, tau=True)
 train_output, train_loss, train_summaries = poseNet.create_trainable(x, y, beta=beta, learn_beta=True)
 if args.validate:
     validation_output, validation_loss, validation_summaries = poseNet.create_validation(x, y)
