@@ -89,10 +89,10 @@ class Posenet:
             gt = self.slice_output(labels)
             x_loss, q_loss, total_loss = self.loss(outputs, gt, weight, learn_beta)
 
-            # And scalar smmaries
-            summaries.append(tf.summary.scalar('validation/Positional Loss', x_loss))
-            summaries.append(tf.summary.scalar('validation/Orientation Loss', q_loss))
-            summaries.append(tf.summary.scalar('validation/Total Loss', total_loss))
+        # And scalar smmaries
+        summaries.append(tf.summary.scalar('validation/Positional Loss', x_loss))
+        summaries.append(tf.summary.scalar('validation/Orientation Loss', q_loss))
+        summaries.append(tf.summary.scalar('validation/Total Loss', total_loss))
 
         return outputs, total_loss, summaries
 
@@ -104,21 +104,21 @@ class Posenet:
     def create_trainable(self, inputs, labels, dropout=0.7, beta=500, learn_beta=False):
         summaries = []
         with tf.variable_scope('PoseNet'):
-
             outputs, layers = self.create_stream(inputs, dropout, trainable=True)
             gt = self.slice_output(labels)
 
             if learn_beta:
                 weight = tf.Variable(tf.constant(beta, tf.float32), name="learned_beta")
-                summaries.append(tf.summary.scalar('train/Beta', weight))
             else:
                 weight = tf.constant(beta, tf.float32)
 
             x_loss, q_loss, total_loss = self.loss(outputs, gt, weight, learn_beta)
 
-            # And scalar smmaries
-            summaries.append(tf.summary.scalar('train/Positional Loss', x_loss))
-            summaries.append(tf.summary.scalar('train/Orientation Loss', q_loss))
-            summaries.append(tf.summary.scalar('train/Total Loss', total_loss))
+        # And scalar smmaries
+        summaries.append(tf.summary.scalar('train/Positional Loss', x_loss))
+        summaries.append(tf.summary.scalar('train/Orientation Loss', q_loss))
+        summaries.append(tf.summary.scalar('train/Total Loss', total_loss))
+        if learn_beta:
+            summaries.append(tf.summary.scalar('train/Beta', weight))
 
         return outputs, total_loss, summaries
