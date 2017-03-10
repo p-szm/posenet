@@ -15,14 +15,14 @@ def plot_sigma(angle, y, sigma):
 
 def plot_verticals(x):
     for xc in x:
-        plt.axvline(x=xc, color='k', linestyle=':')
+        plt.axvline(x=xc, color='k', linestyle=':', lw=0.5)
 
 
-mode = 'extrapolation'
+mode = 'interpolation'
 dataset = 'datasets/david/test1.txt'
-model = 'models/david_extrapolation/david_extrapolation_iter12000.ckpt'
+model = 'models/david_dropout/david_dropout_iter9000.ckpt'
 input_size = 256
-k = 20
+k = 10
 x_min, x_max = 0, 2*np.pi
 shade = (0, 0.6, 0, 0.05)
 
@@ -59,9 +59,9 @@ std_q = np.array(std_q)
 
 for i in range(3):
     plot_sigma(x_scale, x[:,i], 2*std_x[:,i])
-    plt.plot(x_scale, x_gt[:,i], color='black')
+    plt.plot(x_scale, x_gt[:,i], color='black', lw=0.5)
     plt.plot(x_scale, x[:,i])
-    if mode == 'interrpolation':
+    if mode == 'interpolation':
         plt.plot(x_scale[::k], x_gt[::k,i], marker='.', lw=0, color='black')
     else:
         plt.axvspan(np.pi/2, np.pi*5/6, color=shade)
@@ -70,12 +70,12 @@ for i in range(3):
     #plt.ylim([1.6*np.min(x_gt), 1.6*np.max(x_gt)])
 if mode == 'interpolation':
     plot_verticals(x_scale[::k])
-plt.savefig('plots/david_extrapolation/x_12k.png', bbox_inches='tight')
+plt.savefig('plots/david_dropout/x_9k.svg', bbox_inches='tight')
 
 plt.figure()
 for i in range(3):
     plot_sigma(x_scale, q[:,i], 2*std_q[:,i])
-    plt.plot(x_scale, q_gt[:,i], color='black')
+    plt.plot(x_scale, q_gt[:,i], color='black', lw=0.5)
     plt.plot(x_scale, q[:,i])
     if mode == 'interpolation':
         plt.plot(x_scale[::k], q_gt[::k,i], marker='.', lw=0, color='black')
@@ -86,4 +86,4 @@ for i in range(3):
     #plt.ylim([1.2*np.min(q_gt), 1.2*np.max(q_gt)])
 if mode == 'interpolation':
     plot_verticals(x_scale[::k])
-plt.savefig('plots/david_extrapolation/q_12k.png', bbox_inches='tight')
+plt.savefig('plots/david_dropout/q_9k.svg', bbox_inches='tight')
