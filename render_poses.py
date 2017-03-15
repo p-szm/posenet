@@ -9,7 +9,7 @@ from posenet.blender import *
 from posenet.utils import *
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-p', '--pose', type=float, nargs=7, action='store', required=False)
+parser.add_argument('-p', '--pose', type=float, nargs='*', action='store', required=False)
 parser.add_argument('-f', '--def_file', action='store', required=False)
 parser.add_argument('-o', '--output', type=str, action='store', required=True)
 parser.add_argument('-s', '--size', type=int, nargs=2, action='store', required=False, 
@@ -28,13 +28,17 @@ def read_label_file(def_file):
 
 def split_pose(pose):
     x = np.array(pose[0:3])
-    q = np.array(pose[3:7])
+    q = np.array(pose[3:])
     q = q/np.linalg.norm(q)
     return x, q
 
 
 if not args.def_file and not args.pose:
     print('Definition file or pose required')
+    sys.exit(1)
+
+if args.pose and len(args.pose) < 6:
+    print('Invalide pose')
     sys.exit(1)
 
 camera = Camera(width=args.size[0], height=args.size[1])
