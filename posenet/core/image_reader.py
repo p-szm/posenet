@@ -66,11 +66,11 @@ class ImageReader:
             self._shuffle()
 
     def _augment(self, image, gamma_range=(0.5, 3.0), 
-                 gauss_range = (0, 2), noise_range = (0, 0.01),
+                 gauss_range = (0, 3), noise_range = (0, 0.01),
                  color_range = (0.5, 1.5), chance=1):
-        #if random.uniform(0, 1) < chance:
+        if random.uniform(0, 1) < chance:
             # Colorize the image
-            #image = np.random.uniform(color_range[0], color_range[1], [1,3]) * image
+            image = np.random.uniform(color_range[0], color_range[1], [1,3]) * image
         if random.uniform(0, 1) < chance:
             image = exposure.adjust_gamma(image, random.uniform(*gamma_range))
         if random.uniform(0, 1) < chance:
@@ -95,7 +95,8 @@ class ImageReader:
             image = image[offset_y:offset_y+self.crop_size[1],
                           offset_x:offset_x+self.crop_size[0], :]
 
-        image = 2.0*image - 1.0 # Normalise to [-1,1]
+        # Normalise to [-1,1]
+        image = (2*image - np.min(image) - np.max(image)) / (np.max(image) - np.min(image))
         return image
 
     def next_batch(self):
