@@ -2,6 +2,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
 from posenet.core.image_reader import *
 from posenet.core.localiser import Localiser
@@ -18,13 +19,14 @@ def plot_verticals(x):
         plt.axvline(x=xc, color='k', linestyle=':', lw=0.5)
 
 
-mode = 'interpolation'
-dataset = 'datasets/david/test1.txt'
-model = 'models/david_dropout/david_dropout_iter9000.ckpt'
+mode = 'none'
+dataset = 'datasets/room/test1_notexture.txt'
+model = 'models/room/room_iter24000.ckpt'
 input_size = 256
 k = 10
 x_min, x_max = 0, 2*np.pi
 shade = (0, 0.6, 0, 0.05)
+errors = False
 
 
 img_paths, labels = read_label_file(dataset, full_paths=True, convert_to_axis=True)
@@ -57,20 +59,25 @@ q = np.array(q)
 std_x = np.array(std_x)
 std_q = np.array(std_q)
 
+if errors:
+    print 'l2 x: ', np.mean(np.linalg.norm(x-x_gt, ord=2, axis=1))
+    print 'l2 q: ', np.mean(np.linalg.norm(q-q_gt, ord=2, axis=1))
+    sys.exit(0)
+
 for i in range(3):
     plot_sigma(x_scale, x[:,i], 2*std_x[:,i])
     plt.plot(x_scale, x_gt[:,i], color='black', lw=0.5)
     plt.plot(x_scale, x[:,i])
     if mode == 'interpolation':
         plt.plot(x_scale[::k], x_gt[::k,i], marker='.', lw=0, color='black')
-    else:
+    elif mode == 'extrapolation':
         plt.axvspan(np.pi/2, np.pi*5/6, color=shade)
         plt.axvspan(np.pi*7/6, np.pi*3/2, color=shade)
     plt.xlim([x_min, x_max])
     #plt.ylim([1.6*np.min(x_gt), 1.6*np.max(x_gt)])
 if mode == 'interpolation':
     plot_verticals(x_scale[::k])
-plt.savefig('plots/david_dropout/x_9k.svg', bbox_inches='tight')
+plt.savefig('plots/room_notexture/x.svg', bbox_inches='tight')
 
 plt.figure()
 for i in range(3):
@@ -79,11 +86,11 @@ for i in range(3):
     plt.plot(x_scale, q[:,i])
     if mode == 'interpolation':
         plt.plot(x_scale[::k], q_gt[::k,i], marker='.', lw=0, color='black')
-    else:
+    elif mode == 'extrapolation':
         plt.axvspan(np.pi/2, np.pi*5/6, color=shade)
         plt.axvspan(np.pi*7/6, np.pi*3/2, color=shade)
     plt.xlim([x_min, x_max])
     #plt.ylim([1.2*np.min(q_gt), 1.2*np.max(q_gt)])
 if mode == 'interpolation':
     plot_verticals(x_scale[::k])
-plt.savefig('plots/david_dropout/q_9k.svg', bbox_inches='tight')
+plt.savefig('plots/room_notexture/q.svg', bbox_inches='tight')
