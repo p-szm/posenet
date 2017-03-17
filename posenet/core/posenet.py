@@ -36,11 +36,14 @@ class Posenet:
             last_output = slim.fully_connected(last_output, self.n_fc, scope='fc0', trainable=trainable)
             if dropout is not None:
                 last_output = slim.dropout(last_output, keep_prob=dropout, scope='dropout_0')
+            last_output = slim.fully_connected(last_output, self.n_fc, scope='fc1', trainable=trainable)
+            if dropout is not None:
+                last_output = slim.dropout(last_output, keep_prob=dropout, scope='dropout_1')
 
         # Pose Regression
         n_last = 7 if self.output_type == 'quat' else 6
         last_output = slim.fully_connected(last_output, n_last,
-                                            normalizer_fn=None, scope='fc1',
+                                            normalizer_fn=None, scope='fc2',
                                             activation_fn=None, weights_initializer=self.weight_init,
                                             weights_regularizer=self.weight_decay, trainable=trainable)
 
