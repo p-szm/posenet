@@ -29,7 +29,7 @@ def read_image(path, size=None, expand_dims=False, normalise=False):
     if size is not None:
         image = transform.resize(image, (size[0], size[1], 3))
     if normalise:
-        image = 2.0*image - 1.0
+        image = 2 * image - 1
     if expand_dims:
         image = np.expand_dims(image, axis=0)
     return image
@@ -65,12 +65,13 @@ class ImageReader:
         if self.randomise:
             self._shuffle()
 
-    def _augment(self, image, gamma_range=(0.5, 3.0), 
-                 gauss_range = (0, 3), noise_range = (0, 0.01),
+    def _augment(self, image, gamma_range=(0.33, 3.0), 
+                 gauss_range = (0, 4), noise_range = (0, 0.02),
                  color_range = (0.5, 1.5), chance=1):
         if random.uniform(0, 1) < chance:
             # Colorize the image
             image = np.random.uniform(color_range[0], color_range[1], [1,3]) * image
+            image = np.clip(image, -1.0, 1.0)
         if random.uniform(0, 1) < chance:
             image = exposure.adjust_gamma(image, random.uniform(*gamma_range))
         if random.uniform(0, 1) < chance:
@@ -96,7 +97,7 @@ class ImageReader:
                           offset_x:offset_x+self.crop_size[0], :]
 
         # Normalise to [-1,1]
-        image = (2*image - np.min(image) - np.max(image)) / (np.max(image) - np.min(image))
+        image = 2 * image - 1
         return image
 
     def next_batch(self):
