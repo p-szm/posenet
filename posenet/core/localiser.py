@@ -32,6 +32,7 @@ class Localiser:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.session.close()
+        tf.reset_default_graph()
 
     def _localise(self, img):
         predicted = self.session.run([self.output], feed_dict={self.x: img})
