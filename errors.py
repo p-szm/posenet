@@ -72,5 +72,5 @@ iters, models = rearrange(iters, models)
 for model in models:
     x, q, std_x, std_q = localise_all(model, img_paths)
     l2x = np.mean(np.linalg.norm(x-x_gt, ord=2, axis=1))
-    l2q = np.mean(np.linalg.norm(q-q_gt, ord=2, axis=1))
+    l2q = 180.0/np.pi*np.mean(np.arccos(np.sum(q*q_gt, axis=1)))
     print os.path.basename(model), l2x, l2q
