@@ -30,7 +30,7 @@ def localise_all(model, img_paths):
     std_x, std_q = [], []
     with Localiser(model, uncertainty=True, output_type='axis',
                dropout=args.dropout) as localiser:
-        for i, path in enumerate(img_paths[0:5]):
+        for i, path in enumerate(img_paths):
             img = read_image(path, size=args.input_size, 
                     expand_dims=False, normalise=True)
             pred = localiser.localise(img, samples=args.samples)
@@ -76,8 +76,8 @@ x_errors = []
 q_errors = []
 for model in models:
     x, q, std_x, std_q = localise_all(model, img_paths)
-    x_errors.append(np.mean(np.linalg.norm(x-x_gt[0:5], ord=2, axis=1)))
-    q_errors.append(180.0/np.pi*np.mean(np.arccos(np.sum(q*q_gt[0:5], axis=1))))
+    x_errors.append(np.mean(np.linalg.norm(x-x_gt, ord=2, axis=1)))
+    q_errors.append(180.0/np.pi*np.mean(np.arccos(np.sum(q*q_gt, axis=1))))
 print iters, x_errors, q_errors
 
 
