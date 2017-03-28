@@ -4,8 +4,6 @@ import os
 import sys
 
 import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import numpy as np
 
 from posenet.core.image_reader import *
@@ -19,7 +17,13 @@ parser.add_argument('--samples', '-s', action='store', type=int, default=40)
 parser.add_argument('--dropout', action='store', type=float, default=0.5)
 parser.add_argument('--input_size', action='store', nargs=2, type=int, default=[256,256])
 parser.add_argument('--last_iter', action='store', type=int, default=100000)
+parser.add_argument('--save', action='store', required=True)
+parser.add_argument('--agg', action='store_true')
 args = parser.parse_args()
+
+if args.agg:
+    matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 
 def localise_all(model, img_paths):
@@ -27,7 +31,7 @@ def localise_all(model, img_paths):
     std_x, std_q = [], []
     with Localiser(model, uncertainty=True, output_type='axis',
                dropout=args.dropout) as localiser:
-        for i, path in enumerate(img_paths):
+        for i, path in enumerate(img_paths[0:5]):
             img = read_image(path, size=args.input_size, 
                     expand_dims=False, normalise=True)
             pred = localiser.localise(img, samples=args.samples)
@@ -69,8 +73,27 @@ else:
 iters = iterations(models)
 iters, models = rearrange(iters, models)
 
+x_errors = []
+q_errors = []
 for model in models:
     x, q, std_x, std_q = localise_all(model, img_paths)
-    l2x = np.mean(np.linalg.norm(x-x_gt, ord=2, axis=1))
-    l2q = 180.0/np.pi*np.mean(np.arccos(np.sum(q*q_gt, axis=1)))
-    print os.path.basename(model), l2x, l2q
+    x_errors.append(np.mean(np.linalg.norm(x-x_gt[0:5], ord=2, axis=1)))
+    q_errors.append(180.0/np.pi*np.mean(np.arccos(np.sum(q*q_gt[0:5], axis=1))))
+    print '.'
+print iters, x_errors, q_errors
+
+
+ax1 = plt.subplot(211)
+plt.plot(iters, x_errors)
+plt.xlim([0, None])
+plt.ylim([0, None])
+plt.ylabel('Position error')
+
+ax2 = plt.subplot(212, sharex=ax1)
+plt.plot(iters, q_errors)
+plt.xlim([0, None])
+plt.ylim([0, None])
+plt.ylabel('Orientation error (degrees)')
+plt.xlabel('Iteration')
+
+plt.savefig(args.save, bbox_inches='tight')
