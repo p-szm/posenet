@@ -3,13 +3,6 @@ import glob
 import os
 import sys
 
-import matplotlib
-import numpy as np
-
-from posenet.core.image_reader import *
-from posenet.core.localiser import Localiser
-from posenet.utils import progress_bar
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', '-d', action='store')
 parser.add_argument('--model_dir', '-m', action='store')
@@ -21,9 +14,15 @@ parser.add_argument('--save', action='store', required=True)
 parser.add_argument('--agg', action='store_true')
 args = parser.parse_args()
 
+import matplotlib
 if args.agg:
     matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import numpy as np
+
+from posenet.core.image_reader import *
+from posenet.core.localiser import Localiser
+from posenet.utils import progress_bar
 
 
 def localise_all(model, img_paths):
@@ -79,7 +78,6 @@ for model in models:
     x, q, std_x, std_q = localise_all(model, img_paths)
     x_errors.append(np.mean(np.linalg.norm(x-x_gt[0:5], ord=2, axis=1)))
     q_errors.append(180.0/np.pi*np.mean(np.arccos(np.sum(q*q_gt[0:5], axis=1))))
-    print '.'
 print iters, x_errors, q_errors
 
 
