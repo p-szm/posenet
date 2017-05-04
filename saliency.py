@@ -20,6 +20,8 @@ parser.add_argument('-d', '--dataset', action='store', required=True,
     help='''Path to a text file listing images and camera poses''')
 parser.add_argument('-o', '--output', action='store', required=False)
 parser.add_argument('-a', '--axis', action='store_true')
+parser.add_argument('-r', '--red', action='store_true')
+parser.add_argument('-s', '--scale', type=float, action='store')
 args = parser.parse_args()    
 
 
@@ -55,7 +57,13 @@ with Localiser(args.model, output_type='axis' if args.axis else 'quat') as local
         # Compute the saliency map
         grad = localiser.saliency(image)
         grad = median(grad, disk(3))
-        grad = 1.0*grad/np.max(grad)
+        if args.scale:
+            grad = np.clip(1.0 * grad/args.scale, 0, 1)
+        else:
+            grad = 1.0 * grad/np.max(grad)
+
+        if args.red:
+            grad = np.stack([np.ones(grad.shape), np.zeros(grad.shape), np.zeros(grad.shape), grad], axis=2)
 
         if args.output:
             fname = os.path.join(args.output, os.path.basename(imgs[i]))
