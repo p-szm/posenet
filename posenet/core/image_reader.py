@@ -88,11 +88,12 @@ class ImageReader:
             image = self._augment(image, noise_range=(0, 0.005), chance=0.5)
         if self.crop_size is not None:
             if self.centre_crop:
-                offset_x = int(math.floor((self.image_size[0]-self.crop_size[0])/2))
-                offset_y = int(math.floor((self.image_size[1]-self.crop_size[1])/2))
+                offset_x = int(math.floor((self.image_size[1]-self.crop_size[1])/2))
+                offset_y = int(math.floor((self.image_size[0]-self.crop_size[0])/2))
             else:
-                offset_x = random.randint(0, self.image_size[0]-self.crop_size[0])
-                offset_y = random.randint(0, self.image_size[1]-self.crop_size[1])
+                offset_x = random.randint(0, self.image_size[1]-self.crop_size[1])
+                offset_y = random.randint(0, self.image_size[0]-self.crop_size[0])
+                
             image = image[offset_y:offset_y+self.crop_size[1],
                           offset_x:offset_x+self.crop_size[0], :]
 
