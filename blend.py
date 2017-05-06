@@ -13,8 +13,8 @@ parser.add_argument('-m', '--merge', action='store_true')
 parser.add_argument('-o', '--overlay', action='store_true')
 args = parser.parse_args()
 
-files1 = glob.glob('{}/*.png'.format(args.dir1))
-files2 = glob.glob('{}/*.png'.format(args.dir2))
+files1 = sorted(glob.glob('{}/*.png'.format(args.dir1)))
+files2 = sorted(glob.glob('{}/*.png'.format(args.dir2)))
 
 if not all(os.path.basename(files1[i]) == os.path.basename(f) for i, f in enumerate(files2)):
     print('Files don\'t match')
