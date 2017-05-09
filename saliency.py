@@ -22,7 +22,7 @@ parser.add_argument('-o', '--output', action='store', required=False)
 parser.add_argument('-a', '--axis', action='store_true')
 parser.add_argument('-r', '--red', action='store_true')
 parser.add_argument('-k', '--scale', type=float, action='store')
-parser.add_argument('-s', '--size', action='store', type='int', nargs=2, default=[256,256])
+parser.add_argument('-s', '--size', action='store', type=int, nargs=2, default=[256,256])
 args = parser.parse_args()    
 
 
