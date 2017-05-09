@@ -9,7 +9,6 @@ parser.add_argument('--model_dir', '-m', action='store')
 parser.add_argument('--samples', '-s', action='store', type=int, default=40)
 parser.add_argument('--dropout', action='store', type=float, default=0.5)
 parser.add_argument('--input_size', action='store', nargs=2, type=int, default=[256,256])
-parser.add_argument('--last_iter', action='store', type=int, default=100000)
 parser.add_argument('--save', action='store', required=True)
 parser.add_argument('--agg', action='store_true')
 args = parser.parse_args()
@@ -31,7 +30,7 @@ def localise_all(model, img_paths):
     with Localiser(model, uncertainty=True, output_type='axis',
                dropout=args.dropout) as localiser:
         for i, path in enumerate(img_paths):
-            img = read_image(path, size=args.input_size, 
+            img = read_image(path, size=args.input_size, crop_to_square=True,
                     expand_dims=False, normalise=True)
             pred = localiser.localise(img, samples=args.samples)
             x.append(pred['x'])
@@ -41,16 +40,14 @@ def localise_all(model, img_paths):
     return np.array(x), np.array(q), np.array(std_x), np.array(std_q)
 
 def model_list(model_dir):
-    models = glob.glob(os.path.join(model_dir, '*.ckpt.data*'))
+    models = glob.glob(os.path.join(model_dir, '*_iter*.ckpt.data*'))
     models = [m.split('.data-00000-of-00001')[0] for m in models]
     return models
 
 def iterations(models):
     # Sort using the iteration number
     iters = [m[:-5].split('iter')[-1] if ('iter' in m) else None for m in models]
-    iters = [int(i) if i is not None else None for i in iters]
-    if None in iters:
-        iters[iters.index(None)] = args.last_iter
+    iters = [int(i) for i in iters if i is not None]
     return iters
 
 def rearrange(iters, models):
@@ -65,7 +62,7 @@ x_gt = np.array([l[0:3] for l in labels])
 q_gt = np.array([l[3:] for l in labels])
 
 if os.path.isdir(args.model_dir):
-    models = model_list(args.model_dir)
+    models = model_list(args.model_dir)[-2:]
 else:
     models = [args.model_dir]
 
@@ -93,5 +90,8 @@ plt.xlim([0, None])
 plt.ylim([0, None])
 plt.ylabel('Orientation error (degrees)')
 plt.xlabel('Iteration')
+
+if not os.path.isdir(os.path.dirname(args.save)):
+    os.makedirs(os.path.dirname(args.save))
 
 plt.savefig(args.save, bbox_inches='tight')
