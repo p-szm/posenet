@@ -8,7 +8,7 @@ parser.add_argument('--dataset', '-d', action='store')
 parser.add_argument('--model_dir', '-m', action='store')
 parser.add_argument('--samples', '-s', action='store', type=int, default=40)
 parser.add_argument('--dropout', action='store', type=float, default=0.5)
-parser.add_argument('--input_size', action='store', nargs=2, type=int, default=[256,256])
+parser.add_argument('--size', action='store', nargs=2, type=int, default=[256,256])
 parser.add_argument('--save', action='store', required=True)
 parser.add_argument('--agg', action='store_true')
 args = parser.parse_args()
@@ -30,8 +30,8 @@ def localise_all(model, img_paths):
     with Localiser(model, uncertainty=True, output_type='axis',
                dropout=args.dropout) as localiser:
         for i, path in enumerate(img_paths):
-            img = read_image(path, size=args.input_size, crop_to_square=True,
-                    expand_dims=False, normalise=True)
+            img = read_image(path, expand_dims=False, normalise=True)
+            img = resize_image(centre_crop(img), args.size)
             pred = localiser.localise(img, samples=args.samples)
             x.append(pred['x'])
             q.append(pred['q'])

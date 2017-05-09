@@ -9,7 +9,7 @@ from skimage.filters.rank import median
 from skimage.morphology import disk
 
 from posenet.core.localiser import Localiser
-from posenet.core.image_reader import read_image, read_label_file
+from posenet.core.image_reader import *
 from posenet.utils import progress_bar
 
 
@@ -21,7 +21,8 @@ parser.add_argument('-d', '--dataset', action='store', required=True,
 parser.add_argument('-o', '--output', action='store', required=False)
 parser.add_argument('-a', '--axis', action='store_true')
 parser.add_argument('-r', '--red', action='store_true')
-parser.add_argument('-s', '--scale', type=float, action='store')
+parser.add_argument('-k', '--scale', type=float, action='store')
+parser.add_argument('-s', '--size', action='store', type='int', nargs=2, default=[256,256])
 args = parser.parse_args()    
 
 
@@ -48,11 +49,11 @@ if args.output and not os.path.isdir(args.output):
     os.makedirs(args.output)
 
 # Localise
-input_size = 256
 with Localiser(args.model, output_type='axis' if args.axis else 'quat') as localiser:
     for i in range(n_images):
         # Load normalised image
-        image = read_image(imgs[i], normalise=True, size=[input_size, input_size])
+        image = read_image(imgs[i], normalise=True)
+        image = resize_image(centre_crop(image), args.size)
 
         # Compute the saliency map
         grad = localiser.saliency(image)
