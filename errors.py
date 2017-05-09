@@ -62,7 +62,7 @@ x_gt = np.array([l[0:3] for l in labels])
 q_gt = np.array([l[3:] for l in labels])
 
 if os.path.isdir(args.model_dir):
-    models = model_list(args.model_dir)[-2:]
+    models = model_list(args.model_dir)
 else:
     models = [args.model_dir]
 
