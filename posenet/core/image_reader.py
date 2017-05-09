@@ -24,8 +24,16 @@ def read_label_file(def_file, full_paths=False, convert_to_axis=False):
     return list(paths), list(labels)
 
 
-def read_image(path, size=None, expand_dims=False, normalise=False):
+def read_image(path, size=None, expand_dims=False, normalise=False, crop_to_square=False):
     image = img_as_float(io.imread(path))
+    if crop_to_square:
+        # Extract centre square
+        if image.shape[1] > image.shape[0]:
+            b = int((image.shape[1] - image.shape[0]) / 2)
+            image = image[:,b,image.shape[0]+b,:]
+        elif image.shape[0] > image.shape[1]:
+            b = int((image.shape[0] - image.shape[1]) / 2)
+            image = image[b,image.shape[0]+b,:,:]
     if size is not None:
         image = transform.resize(image, (size[0], size[1], 3))
     if normalise:
