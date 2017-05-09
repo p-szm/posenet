@@ -4,7 +4,7 @@ import math
 import os
 import sys
 
-from posenet.core.image_reader import read_image, read_label_file
+from posenet.core.image_reader import *
 from posenet.core.localiser import Localiser
 from posenet.utils import progress_bar
 
@@ -45,7 +45,8 @@ with Localiser(args.model, uncertainty=args.uncertainty, output_type=output_type
 
     for i in range(n_images):
         # Load image
-        image = read_image(imgs[i], normalise=True, size=[input_size, input_size])
+        image = read_image(imgs[i], normalise=True)
+        image = resize_image(centre_crop(image), [input_size, input_size])
 
         # Make prediction
         predicted = localiser.localise(image, samples=40)

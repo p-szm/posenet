@@ -19,9 +19,9 @@ def plot_verticals(x):
         plt.axvline(x=xc, color='k', linestyle=':', lw=0.5)
 
 
-mode = 'none'
-dataset = 'datasets/room/test1_notexture.txt'
-model = 'models/room/room_iter24000.ckpt'
+mode = 'interpolation'
+dataset = 'datasets/david/test1.txt'
+model = 'results/dummy/9/models/dummy9.ckpt'
 input_size = 256
 k = 10
 x_min, x_max = 0, 2*np.pi
@@ -40,11 +40,11 @@ q = []
 std_x = []
 std_q = []
 
-with Localiser(model, uncertainty=True, output_type='axis', dropout=0.3) as localiser:
+with Localiser(model, uncertainty=True, output_type='axis', dropout=0.5) as localiser:
     for i, path in enumerate(img_paths):
-        img = read_image(path, size=[input_size, input_size], 
-                expand_dims=False, normalise=True)
-        pred = localiser.localise(img, samples=40)
+        img = read_image(path, expand_dims=False, normalise=True)
+        img = resize_image(centre_crop(img), [input_size, input_size])
+        pred = localiser.localise(img, samples=10)
         x.append(pred['x'])
         q.append(pred['q'])
         std_x.append(pred['std_x_all'])
@@ -74,10 +74,10 @@ for i in range(3):
         plt.axvspan(np.pi/2, np.pi*5/6, color=shade)
         plt.axvspan(np.pi*7/6, np.pi*3/2, color=shade)
     plt.xlim([x_min, x_max])
-    #plt.ylim([1.6*np.min(x_gt), 1.6*np.max(x_gt)])
+    plt.ylim([1.6*np.min(x_gt), 1.6*np.max(x_gt)])
 if mode == 'interpolation':
     plot_verticals(x_scale[::k])
-plt.savefig('plots/room_notexture/x.svg', bbox_inches='tight')
+plt.savefig('results/dummy/9/plots/x.svg', bbox_inches='tight')
 
 plt.figure()
 for i in range(3):
@@ -93,4 +93,4 @@ for i in range(3):
     #plt.ylim([1.2*np.min(q_gt), 1.2*np.max(q_gt)])
 if mode == 'interpolation':
     plot_verticals(x_scale[::k])
-plt.savefig('plots/room_notexture/q.svg', bbox_inches='tight')
+plt.savefig('results/dummy/9/plots/q.svg', bbox_inches='tight')
