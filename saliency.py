@@ -68,7 +68,7 @@ with Localiser(args.model, output_type='axis' if args.axis else 'quat') as local
 
         if args.output:
             fname = os.path.join(args.output, os.path.basename(imgs[i]))
-            scipy.misc.imsave(fname, grad)
+            scipy.misc.toimage(grad, cmin=0, cmax=1).save(fname)
             progress_bar(1.0*(i+1)/n_images, 30, text='Computing')
         else:
             # Display image
