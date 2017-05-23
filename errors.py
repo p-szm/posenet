@@ -27,7 +27,7 @@ from posenet.utils import progress_bar
 def localise_all(model, img_paths):
     x, q = [], []
     std_x, std_q = [], []
-    with Localiser(model, uncertainty=True, output_type='axis',
+    with Localiser(model, uncertainty=False, output_type='axis',
                dropout=args.dropout) as localiser:
         for i, path in enumerate(img_paths):
             img = read_image(path, expand_dims=False, normalise=True)
@@ -35,9 +35,9 @@ def localise_all(model, img_paths):
             pred = localiser.localise(img, samples=args.samples)
             x.append(pred['x'])
             q.append(pred['q'])
-            std_x.append(pred['std_x_all'])
-            std_q.append(pred['std_q_all'])
-    return np.array(x), np.array(q), np.array(std_x), np.array(std_q)
+            #std_x.append(pred['std_x_all'])
+            #std_q.append(pred['std_q_all'])
+    return np.array(x), np.array(q)#, np.array(std_x), np.array(std_q)
 
 def model_list(model_dir):
     models = glob.glob(os.path.join(model_dir, '*_iter*.ckpt.data*'))
@@ -72,7 +72,7 @@ iters, models = rearrange(iters, models)
 x_errors = []
 q_errors = []
 for model in models:
-    x, q, std_x, std_q = localise_all(model, img_paths)
+    x, q = localise_all(model, img_paths)
     x_errors.append(np.mean(np.linalg.norm(x-x_gt, ord=2, axis=1)))
     q_errors.append(180.0/np.pi*np.mean(np.arccos(np.sum(q*q_gt, axis=1))))
 print iters, x_errors, q_errors

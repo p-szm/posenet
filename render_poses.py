@@ -14,6 +14,7 @@ parser.add_argument('-f', '--def_file', action='store', required=False)
 parser.add_argument('-o', '--output', type=str, action='store', required=True)
 parser.add_argument('-s', '--size', type=int, nargs=2, action='store', required=False, 
                     default=[300,300])
+parser.add_argument('--gpu', action='store_true')
 args = parser.parse_args(preprocess_args(sys.argv))
 
 
@@ -42,6 +43,9 @@ if args.pose and len(args.pose) < 6:
     sys.exit(1)
 
 camera = Camera(width=args.size[0], height=args.size[1])
+
+if args.gpu:
+    use_gpu()
 
 if args.def_file:
     paths, labels = read_label_file(args.def_file)

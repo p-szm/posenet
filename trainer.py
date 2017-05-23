@@ -35,10 +35,11 @@ parser.add_argument('-V', '--verbose', action='store_true')
 parser.add_argument('--save_iters', '-s', action='store', type=int, nargs='*',
     default=[], help='''Iterations on which to save the model (in addition to 
     the last iteration)''')
+parser.add_argument('--iter_start', action='store', type=int, default=0)
 args = parser.parse_args()
 
 
-image_size = 256
+image_size = [256, 256]
 crop_size = 256
 learning_rate = 0.001
 beta = 4
@@ -55,13 +56,13 @@ if not tf.gfile.Exists(args.save_dir):
 
 # Prepare input queues
 train_reader = ImageReader(args.dataset, batch_size=args.batch_size, 
-                           image_size=[image_size, image_size],
-                           randomise=True, augment=True,
+                           image_size=image_size,
+                           randomise=True, augment=True, centre_crop=False,
                            convert_to_axis=(output_type=='axis'))
 if args.validate:
     validation_reader = ImageReader(args.validate, batch_size=args.batch_size, 
-                            image_size=[image_size, image_size], randomise=True,
-                            convert_to_axis=(output_type=='axis'))
+                            image_size=image_size, randomise=True,
+                            centre_crop=False, convert_to_axis=(output_type=='axis'))
 
 # tf Graph input
 k = 6 if output_type == 'axis' else 7
@@ -70,7 +71,7 @@ y = tf.placeholder(tf.float32, [None, k], name="LabelData")
 
 # Define the network
 poseNet = Posenet(endpoint='Mixed_5b', n_fc=256, loss_type=loss_type, output_type=output_type)
-train_output, train_loss, train_summaries = poseNet.create_trainable(x, y, beta=beta, learn_beta=True)
+train_output, train_loss, train_summaries = poseNet.create_trainable(x, y, beta=beta, learn_beta=True, dropout=0.5)
 if args.validate:
     validation_output, validation_loss, validation_summaries = poseNet.create_validation(x, y)
 
@@ -95,7 +96,7 @@ with tf.Session() as sess:
     # op to write logs to Tensorboard
     summary_writer = tf.summary.FileWriter(log_dir, graph=tf.get_default_graph())
 
-    for i in range(args.n_iters):
+    for i in range(args.iter_start, args.iter_start + args.n_iters):
         train_images_feed, train_labels_feed = train_reader.next_batch()
 
         # Run optimization op (backprop)
@@ -119,7 +120,8 @@ with tf.Session() as sess:
                 print('{} (validation): Loss = {:.6f}'.format(i, results[0]))
 
         if not args.verbose:
-            progress_bar(1.0*(i+1)/args.n_iters, 30, text='Training', epilog='iter {}'.format(i))
+            progress_bar(1.0*(i+1-args.iter_start)/args.n_iters, 30, text='Training', 
+                         epilog='iter {}'.format(i))
         
         if i+1 in args.save_iters:
             save_path = os.path.join(args.save_dir, args.name + '_iter{}.ckpt'.format(i+1))

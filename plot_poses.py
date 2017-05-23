@@ -101,7 +101,7 @@ def draw_ring(pos, r, color='black', lw=1):
     ax.plot(x, y, z, color=color, lw=lw)
 
 # Plot setup
-fig = plt.figure()
+fig = plt.figure(figsize=(4,4))
 ax = fig.add_subplot(111, projection='3d')
 
 # Draw coordinates
@@ -112,7 +112,7 @@ draw_segment(p0, [p0[0], p0[1]+l, p0[2]], color='green', lw=1.5)
 draw_segment(p0, [p0[0], p0[1], p0[2]+l], color='blue', lw=1.5)
 
 # Draw sphere
-draw_sphere(args.sphere_pos, args.r_sphere, color='black', lw=0.5)
+draw_sphere(args.sphere_pos, args.r_sphere, color='gray', lw=0.5)
 
 # Draw rings at z=0
 if args.rings:
@@ -138,8 +138,8 @@ for i in range(positions.shape[0]):
     if args.uncertainty:
         colorVal = scalarMap.to_rgba(std_x[i]+std_q[i])
     else:
-        colorVal = 'red'
-    ax.quiver(X[i],Y[i],Z[i],U[i],V[i],W[i], pivot='tail', color=colorVal, length=args.arrow_len, lw=1)
+        colorVal = 'black'
+    ax.quiver(X[i],Y[i],Z[i],U[i],V[i],W[i], pivot='tail', color=colorVal, length=args.arrow_len, lw=0.5)
 
 # Connect consecutive predicted positions
 if args.connect:

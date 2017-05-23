@@ -26,6 +26,12 @@ def read_label_file(def_file, full_paths=False, convert_to_axis=False):
 
 def read_image(path, size=None, expand_dims=False, normalise=False):
     image = img_as_float(io.imread(path))
+
+    n_channels = image.shape[-1] if len(image.shape) == 3 else 1
+    if n_channels == 1:
+        # Populate each RGB channel with BW
+        image = np.dstack((image, image, image))
+
     if size is not None:
         image = resize_image(image, size)
     if normalise:

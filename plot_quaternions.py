@@ -3,11 +3,12 @@ import math
 
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.ticker as ticker
 
 from posenet.core.image_reader import read_label_file
 
 def_file = 'datasets/plane/test1.txt'
-test_file = 'results/localised/plane_test1.txt'
+test_file = 'results_new/plane_axis/test1_localised.txt'
 #flip = [41,None]
 #flip = [87, 135]
 flip = 'auto'
@@ -26,7 +27,6 @@ def plot_position(ax, i):
 	#ax.yaxis.set_ticks(np.arange(min_pos, max_pos, 1))
 	ax.set_ylim(min(0, math.floor(min(min(positions_gt[:,i]), min(positions_test[:,i])))-1))
 
-
 _, labels_gt = read_label_file(def_file, convert_to_axis=True)
 _, labels_test = read_label_file(test_file, convert_to_axis=False)
 
@@ -42,8 +42,14 @@ elif flip == 'auto':
 	for i, x in enumerate(orientations_gt):
 		if sum(abs(-x - orientations_test[i])) < sum(abs(x - orientations_test[i])):
 			orientations_gt[i] = -x
+elif flip == 'smooth':
+	for i, x in enumerate(orientations_gt[:-1]):
+		if sum(abs(orientations_gt[i+1] - x)) > sum(abs(orientations_gt[i+1] + x)):
+			orientations_gt[i+1] = -orientations_gt[i+1]
 elif flip is not None:
 	orientations_gt[flip[0]:flip[1]] = -orientations_gt[flip[0]:flip[1]]
+
+x = np.linspace(0, 2*np.pi, orientations_gt.shape[0])
 
 if subplots:
 	k = orientations_gt.shape[1]
@@ -60,12 +66,27 @@ if subplots:
 	plt.title('Position')
 	plt.show()
 else:
-	plt.plot(orientations_gt, color='grey')
-	plt.plot(orientations_test)
+	plt.figure(figsize=(4, 3.5), dpi=80, facecolor='w')
+	plt.plot(x/np.pi, orientations_gt, color='grey')
+	plt.plot(x/np.pi, orientations_test, lw=1)
 	plt.axhline(0, color='grey', ls='dashed')
 	plt.title('Orientation')
-	plt.figure()
-	plt.plot(positions_gt, color='grey')
-	plt.plot(positions_test)
+	plt.xlabel('Angular position')
+	plt.ylabel('Vector components')
+	ax = plt.axes()
+	ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('$%g\pi$'))
+	ax.xaxis.set_major_locator(ticker.MultipleLocator(base=0.5))
+	plt.subplots_adjust(bottom=0.15, left=0.18)
+	plt.savefig('results_new/plane_all/a.pdf')
+
+	plt.figure(figsize=(4, 3.5), dpi=80, facecolor='w')
+	plt.plot(x/np.pi, positions_gt, color='grey', lw=1)
+	plt.plot(x/np.pi, positions_test)
 	plt.title('Position')
-	plt.show()
+	plt.xlabel('Angular position')
+	plt.ylabel('Vector components')
+	ax = plt.axes()
+	ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('$%g\pi$'))
+	ax.xaxis.set_major_locator(ticker.MultipleLocator(base=0.5))
+	plt.subplots_adjust(bottom=0.15, left=0.18)
+	plt.savefig('results_new/plane_all/b.pdf')
